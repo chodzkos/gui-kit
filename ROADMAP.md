@@ -8,12 +8,12 @@ dwóch realnych konsumentów nie wchodzi wcale.
 
 - [x] szkielet repo, pyproject (extras qt/tk/dev), CI
 - [x] `palette.py` — paleta + stany pochodne z GUI_STANDARD §5 (czyste dane)
-- [ ] `config.py` — ekstrakcja z EpubForge (platformdirs, zapis atomowy, debounce)
-- [ ] `winutil/dwm.py` — ekstrakcja ctypes DWM (WM_NCACTIVATE, RDW_FRAME) jako kod bez Qt/tk
-- [ ] `qt/theme.py` — kanoniczna sekwencja apply() (standard v2.3), generator QSS z palette
-- [ ] `qt/titlebar.py` — symetryczna reguła rozjazdu (standard v2.1)
-- [ ] `qt/dialogs.py` — natywny⇔zgodność + skonfigurowany fallback (standard v2.2)
-- [ ] migracja testów z EpubForge (pytest-qt, offscreen; testy DWM markowane `windows`)
+- [x] `config.py` — ekstrakcja z EpubForge (platformdirs, zapis atomowy, debounce)
+- [x] `winutil/dwm.py` — ekstrakcja ctypes DWM (WM_NCACTIVATE, RDW_FRAME) jako kod bez Qt/tk
+- [x] `qt/theme.py` — kanoniczna sekwencja apply() (standard v2.3), generator QSS z palette
+- [x] `qt/titlebar.py` — DWM = motyw app bezwarunkowo (standard v2.5)
+- [x] `qt/dialogs.py` — natywny⇔zgodność + skonfigurowany fallback (standard v2.2)
+- [x] migracja testów z EpubForge (pytest-qt, offscreen; testy DWM markowane `windows`)
 - [ ] tag `v0.1.0` → EpubForge przechodzi na zależność (PROMPTS P2)
 
 ## v0.2.0 — tor tkinter
