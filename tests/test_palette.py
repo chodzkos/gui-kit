@@ -22,3 +22,8 @@ def test_light_accent_text_uses_accent2() -> None:
     # reguła kontrastu GUI_STANDARD §5
     assert palette.LIGHT.accent_text == palette.LIGHT.accent2
     assert palette.DARK.accent_text == palette.DARK.accent
+
+
+def test_brand_accent_is_marketing_green() -> None:
+    # znak rozpoznawczy marki (GUI_STANDARD §5) — niezmiennik, pinujemy hex
+    assert palette.DARK.accent == "#5DCAA5"
