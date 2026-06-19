@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "chodzkos-gui-kit"
+version = "0.1.0"
+description = "Wspólne komponenty GUI (tor Qt i tkinter) wg GUI_STANDARD.md — paleta marki, motywy, titlebar DWM, dialogi."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "chodzkos" }]
+dependencies = [
+    "platformdirs>=4",
+]
+
+[project.optional-dependencies]
+qt = ["PySide6>=6.5"]
+tk = ["darkdetect>=0.8", "tkinterdnd2>=0.4"]
+dev = [
+    "pytest>=8",
+    "pytest-qt>=4.4",
+    "ruff>=0.6",
+    "mypy>=1.10",
+]
+
+[project.urls]
+Repository = "https://github.com/chodzkos/gui-kit"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/chodzkos_gui_kit"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "windows: testy wymagajace Windows/DWM (uruchamiane tylko przy tagu, manualnie lub na self-hosted)",
+    "qt: testy wymagajace PySide6 (QT_QPA_PLATFORM=offscreen na CI)",
+]
+addopts = "-m 'not windows'"
