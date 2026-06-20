@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.1]
+### Fixed
+- dołączono marker `py.typed` (PEP 561) — konsumenci (np. EpubForge) dostają typy kitu w `mypy --strict` bez `ignore_missing_imports`
+
+## [0.1.0]
 ### Added
 - szkielet repo: palette.py (paleta + stany z GUI_STANDARD §5), pyproject z extras, CI, dokumentacja (README, ROADMAP, PROMPTS, CLAUDE.md), GUI_STANDARD.md v2.7
 - ekstrakcja rdzenia Qt z EpubForge (PROMPTS P1):
