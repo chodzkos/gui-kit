@@ -91,6 +91,60 @@ GAŁĄŹ: refactor/use-gui-kit
 
 ---
 
+## P2b — hotfix: marker py.typed (gui-kit v0.1.1) + przywrócenie typowania w EpubForge
+
+Powód: kit jest w pełni otypowany i przechodzi `mypy --strict`, ale v0.1.0 NIE
+dołącza markera `py.typed` (PEP 561). Przez to konsumenci (EpubForge) widzą kit
+jako nieotypowany — w P2 trzeba było dodać override `ignore_missing_imports` dla
+`chodzkos_gui_kit.*` oraz kilka `str()/Path()` na granicy. Ten prompt domyka temat:
+kit wydaje v0.1.1 z markerem, EpubForge podnosi pin i zdejmuje obejścia.
+
+Pracujesz w DWÓCH repozytoriach: gui-kit (najpierw) i EpubForge (po wydaniu tagu).
+
+### Część A — gui-kit (v0.1.1)
+
+```
+gui-kit. GAŁĄŹ: fix/py-typed
+
+1. Dodaj pusty plik markera src/chodzkos_gui_kit/py.typed (PEP 561 — sygnał, że
+   pakiet jest otypowany).
+2. Upewnij się, że marker TRAFIA do wheela: zbuduj paczkę i sprawdź jej zawartość
+   (np. `python -m build` + rozpakowanie .whl albo `hatch build` + unzip -l) —
+   `chodzkos_gui_kit/py.typed` MUSI być w archiwum. Jeśli hatchling go pomija,
+   dodaj go jawnie (artifacts / force-include) w pyproject.
+3. Podbij wersję 0.1.0 → 0.1.1 w pyproject.toml ORAZ
+   src/chodzkos_gui_kit/__init__.py (__version__).
+4. CHANGELOG: nowa sekcja [0.1.1] — "Fixed: dołączono marker py.typed (PEP 561),
+   konsumenci dostają typy kitu w mypy --strict".
+5. pytest, ruff --fix, mypy (strict) — bez zmian w API.
+6. Commit: "fix: ship py.typed marker (PEP 561)".
+7. Zaproponuj push i PR. NIE pushuj automatycznie. Po merge zaproponuj tag v0.1.1.
+```
+
+### Część B — EpubForge (po staggowaniu v0.1.1)
+
+```
+EpubForge. Warunek wstępny: gui-kit v0.1.1 jest staggowany na GitHubie.
+GAŁĄŹ: chore/bump-gui-kit-0-1-1
+
+1. pyproject: podnieś pin chodzkos-gui-kit v0.1.0 → v0.1.1 (OBA wiersze:
+   bazowy w [dependencies] i [qt] w extra "gui").
+2. Usuń z [tool.mypy] override z modułem "chodzkos_gui_kit.*"
+   (ignore_missing_imports) — kit jest już otypowany.
+3. Zdejmij obejścia z granicy kitu (komentarz „bez py.typed w v0.1.0 mypy widzi Any"):
+   - core/config.py: `return Path(_kit_config_dir(...))` → bez owijania w Path;
+   - gui/widgets/log_view.py: `_color_for` bez owijania w str(...);
+   - gui/tabs/validator.py: `_severity_color` bez str(...) wokół pól palety.
+   Po zmianie mypy --strict ma przejść CZYSTO (kit dostarcza typy: Palette.bg:str,
+   config_dir()->Path) — jeśli gdzieś zostaje Any, dołóż precyzyjny typ zamiast cast.
+4. CHANGELOG (Changed: bump chodzkos-gui-kit → v0.1.1, przywrócono typowanie kitu).
+5. pytest, ruff --fix, mypy (strict). Smoke nieobowiązkowy (brak zmian zachowania).
+6. Commit: "chore(deps): bump chodzkos-gui-kit to v0.1.1, drop py.typed workarounds".
+7. Zaproponuj push i PR. NIE pushuj automatycznie.
+```
+
+---
+
 ## P3 — tor tkinter (v0.2.0) — szkic, doprecyzować przy podjęciu
 
 ```
