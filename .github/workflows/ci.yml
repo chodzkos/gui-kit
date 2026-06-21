@@ -24,8 +24,10 @@ jobs:
         run: uv run ruff check .
       - name: Types
         run: uv run mypy src
-      - name: Install Qt offscreen libs
-        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1
+      - name: Install Qt offscreen libs + Tk
+        # python3-tk dostarcza _tkinter do systemowego Pythona (Ubuntu trzyma go
+        # w osobnej paczce) — testy toru tk robią `import tkinter` (bez display).
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 python3-tk
       - name: Tests (bez markera windows)
         run: uv run pytest
 
