@@ -27,7 +27,7 @@ from typing import Any, Literal
 
 from PySide6.QtCore import QObject, Qt, Signal
 from PySide6.QtGui import QColor, QGuiApplication, QPalette
-from PySide6.QtWidgets import QApplication, QToolTip, QWidget
+from PySide6.QtWidgets import QAbstractItemView, QApplication, QToolTip, QWidget
 
 from chodzkos_gui_kit import palette as pal
 from chodzkos_gui_kit.palette import Palette
@@ -162,36 +162,54 @@ QToolTip {{
 """
 
 
-def apply_theme(app: QApplication, palette: Palette) -> None:
+def apply_theme(app: QApplication, palette: Palette, *, repaint_item_views: bool = True) -> None:
     """Stosuje paletę do aplikacji wg kanonicznej sekwencji §4.
 
     Kolejność jest istotna: najpierw styl ``Fusion`` (inaczej natywny styl
     Windows zignoruje paletę), potem paleta, potem świeży QSS na akcenty, na
     końcu jawna paleta tooltipów i przemalowanie istniejących widgetów. Aktualizuje
     też paletę modułową (:func:`current_palette`).
+
+    Args:
+        app: aplikacja.
+        palette: paleta marki do zastosowania.
+        repaint_item_views: czy wymusić repaint palety na ``QAbstractItemView``
+            (domyślnie ``True`` — patrz :func:`_repolish`). Wyłącz, jeśli masz
+            własną obsługę odświeżania widoków.
     """
     app.setStyle("Fusion")
     qpalette = build_palette(palette)
     app.setPalette(qpalette)
     app.setStyleSheet(build_qss(palette))
     QToolTip.setPalette(qpalette)
-    _repolish(app)
+    _repolish(app, repaint_item_views=repaint_item_views)
     # Jedyne wejście zapisu palety ikon — wspólne z konsumentami z własnym motywem.
     set_current_palette(palette)
 
 
-def _repolish(app: QApplication) -> None:
+def _repolish(app: QApplication, *, repaint_item_views: bool = True) -> None:
     """Wymusza przemalowanie wszystkich widgetów po zmianie palety/QSS.
 
-    Po ``unpolish``/``polish`` dodatkowo woła ``update()`` na każdym widgecie
-    (i raz jeszcze na oknach top-level) — bez tego częściowo widoczne okna
-    odświeżają się z opóźnieniem przy zmianie motywu systemu w tle (tryb auto).
+    Po ``unpolish``/``polish`` woła ``update()`` na każdym widgecie (i raz jeszcze
+    na oknach top-level) — bez tego częściowo widoczne okna odświeżają się
+    z opóźnieniem przy zmianie motywu systemu w tle (tryb auto).
+
+    Dodatkowo (``repaint_item_views``) wymusza ``setPalette(app.palette())`` na
+    ``QAbstractItemView`` (``QTableWidget``/``QTreeView``…): te widoki trzymają
+    per-widget resolve mask palety, której samo ``unpolish``/``polish`` NIE czyści
+    — po dark→light zostawał stary ciemny Base (GUI_STANDARD §5 v2.10). **Celowane
+    wyłącznie na item-views**: globalne ``setPalette`` nadpisałoby intencjonalne
+    palety innych widgetów.
     """
     style = app.style()
+    app_palette = app.palette()
     for widget in app.allWidgets():
         style.unpolish(widget)
         style.polish(widget)
         widget.update()
+        if repaint_item_views and isinstance(widget, QAbstractItemView):
+            widget.setPalette(app_palette)
+            widget.viewport().update()
     for window in app.topLevelWidgets():
         window.update()
 

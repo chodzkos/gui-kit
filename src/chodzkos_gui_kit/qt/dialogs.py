@@ -109,16 +109,37 @@ def save_file(
     start_dir: str,
     name_filter: str,
     config: DialogConfig | None = None,
+    *,
+    initial_name: str | None = None,
 ) -> str:
-    """Wybór miejsca i nazwy zapisu. Zwraca ścieżkę lub ``""``."""
+    """Wybór miejsca i nazwy zapisu. Zwraca ścieżkę lub ``""``.
+
+    ``initial_name`` prefilluje nazwę pliku (np. ``"rysunek.png"``). Obie gałęzie
+    — natywna i fallback — dają TEN SAM efekt (prefill widoczny): natywna przez
+    pełną ścieżkę w ``dir`` ``getSaveFileName``, fallback przez ``selectFile``.
+    """
     if _native():
-        path, _ = QFileDialog.getSaveFileName(parent, title, start_dir, name_filter)
+        native_dir = _with_initial_name(start_dir, initial_name)
+        path, _ = QFileDialog.getSaveFileName(parent, title, native_dir, name_filter)
         return path
     dialog = _dark_dialog(parent, title, start_dir, config)
     dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
     dialog.setFileMode(QFileDialog.FileMode.AnyFile)
     _set_filters(dialog, name_filter)
+    if initial_name:
+        dialog.selectFile(initial_name)
     return _first_selected(dialog, config)
+
+
+def _with_initial_name(start_dir: str, initial_name: str | None) -> str:
+    """Łączy katalog startowy z nazwą pliku — dla prefillu natywnego ``getSaveFileName``.
+
+    ``getSaveFileName`` traktuje ``dir`` zawierający nazwę pliku jako prefill
+    (otwiera w katalogu i podstawia nazwę). Bez ``initial_name`` zwraca sam katalog.
+    """
+    if not initial_name:
+        return start_dir
+    return str(Path(start_dir) / initial_name) if start_dir else initial_name
 
 
 def pick_dir(

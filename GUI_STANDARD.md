@@ -4,11 +4,12 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-06-21 · **Wersja:** 2.9
+**Ostatnia rewizja:** 2026-06-21 · **Wersja:** 2.10
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.10 | Repaint po zmianie motywu: `_repolish` CELOWO wymusza `setPalette(app.palette())` na `QAbstractItemView` (`QTableWidget`/`QTreeView`…) — te widoki trzymają per-widget resolve mask palety, której samo `unpolish`/`polish` NIE czyści (po dark→light zostawał stary ciemny Base). Celowane WYŁĄCZNIE na item-views; globalne `setPalette` nadpisałoby intencjonalne palety innych widgetów (2026-06-21) |
 | 2.9 | DWM/ctypes: uchwyt okna ZAWSZE przez `wintypes.HWND` + ustawione `argtypes`, nigdy goły Python int — na Win64 goły int marshaluje się jako 32-bit `c_int` i TRUNCUJE 64-bit HWND (objaw: DWM/titlebar działa na części okien, na innych nie). Dotyczy obu torów (tk: `GetParent(winfo_id())` też zwraca uchwyt do opakowania) (2026-06-21) |
 | 2.8 | IconProvider: usankcjonowany wyjątek od „kolory tylko z palety" — konsument z WŁASNYM motywem (qdarktheme itp.) ustawia paletę ikon przez PUBLICZNE `set_current_palette()`, nie przez prywatne `_current`. To jedno publiczne wejście zapisu (kitowy `apply_theme()` przechodzi przez ten sam setter), więc nie ma drugiego źródła ani rozjazdu koloru ikon z motywem UI (2026-06-21) |
 | 2.7 | sekcja Ikonografia rozszerzona: zestaw Lucide (ISC) / Tabler (MIT) kopiowany do repo; mechanizm przebarwialnych SVG `get_icon()` z podmianą currentColor wg palety + cache + clear na theme_changed (powód: NIE statyczne PNG); ICON_MAP; zasada „nazwa→tooltip+setText"; audyt tooltipów. Komponent IconProvider w §7 (z IcoForge feat/icon-system) |
@@ -261,6 +262,12 @@ Aplikacje docelowe, większe projekty, wszystko gdzie ciemny motyw i wygląd maj
 - **Repaint pozostałości motywu:** po zmianie palety/QSS przejdź
   `style.unpolish()/polish()` po `app.allWidgets()` **+ `update()`**
   (patrz kontrakt theme.py pkt 4 — okna w tle).
+- **Item-views trzymają stary Base (v2.10):** `QAbstractItemView`
+  (`QTableWidget`/`QTreeView`…) zachowuje per-widget resolve mask palety —
+  samo `unpolish`/`polish` go NIE czyści, więc po `dark→light` zostaje stary
+  ciemny Base. `_repolish` dokłada `setPalette(app.palette())` **celowane na
+  item-views** (+ `viewport().update()`). NIE rób tego globalnie — nadpisałbyś
+  intencjonalne palety per-widget (np. podgląd na białym „papierze").
 - **Hardcoded kolory:** w kodzie widgetów używaj ról palety
   (`palette(base)`, `palette(text)`), nie sztywnych hexów — inaczej
   nie zmieniają się z motywem. Hexy żyją wyłącznie w theme.py.
