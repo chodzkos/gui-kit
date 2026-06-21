@@ -31,7 +31,11 @@ def test_configure_signatures_uses_pointer_sized_handle() -> None:
     czemu test działa bez Windows i bez ``ctypes.wintypes``.
     """
     dwm_lib = SimpleNamespace(DwmSetWindowAttribute=SimpleNamespace())
-    user32 = SimpleNamespace(SendMessageW=SimpleNamespace(), SetWindowPos=SimpleNamespace())
+    user32 = SimpleNamespace(
+        SendMessageW=SimpleNamespace(),
+        SetWindowPos=SimpleNamespace(),
+        RedrawWindow=SimpleNamespace(),
+    )
 
     dwm._configure_signatures(dwm_lib, user32, ctypes.c_void_p)
 
@@ -43,6 +47,7 @@ def test_configure_signatures_uses_pointer_sized_handle() -> None:
     assert user32.SendMessageW.argtypes[0] is ctypes.c_void_p
     assert user32.SetWindowPos.argtypes[0] is ctypes.c_void_p
     assert user32.SetWindowPos.argtypes[1] is ctypes.c_void_p  # hWndInsertAfter też uchwyt
+    assert user32.RedrawWindow.argtypes[0] is ctypes.c_void_p  # repaint ramki (§4)
 
 
 @pytest.mark.windows

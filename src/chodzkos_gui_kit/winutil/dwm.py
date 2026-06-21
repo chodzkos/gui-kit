@@ -36,6 +36,10 @@ _DWMWA_USE_IMMERSIVE_DARK_MODE_OLD = 19
 _WM_NCACTIVATE = 0x0086
 # SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED
 _SWP_FRAME_REDRAW = 0x0001 | 0x0002 | 0x0004 | 0x0010 | 0x0020
+# RDW_INVALIDATE | RDW_UPDATENOW | RDW_FRAME | RDW_NOCHILDREN — synchroniczne
+# przemalowanie ramki. RDW_FRAME niweluje artefakt Win10: jasne tło pod tekstem
+# tytułu po włączeniu DWMWA_USE_IMMERSIVE_DARK_MODE (GUI_STANDARD §4).
+_RDW_FRAME_REPAINT = 0x0001 | 0x0100 | 0x0400 | 0x0040
 
 
 def set_titlebar(hwnd: int, dark: bool) -> None:
@@ -83,6 +87,8 @@ def _configure_signatures(dwm: Any, user32: Any, hwnd_type: type) -> None:
         dword,  # uFlags
     )
     user32.SetWindowPos.restype = ctypes.c_int  # BOOL
+    user32.RedrawWindow.argtypes = (hwnd_type, ptr, ptr, dword)  # hWnd, lprc, hrgn, flags
+    user32.RedrawWindow.restype = ctypes.c_int  # BOOL
 
 
 def _set_titlebar_win(hwnd: int, dark: bool) -> None:
@@ -115,11 +121,13 @@ def _set_titlebar_win(hwnd: int, dark: bool) -> None:
 def _force_frame_redraw(user32: Any, hwnd: int) -> None:
     """Wymusza przemalowanie obszaru nieklienckiego (pasek tytułu).
 
-    Bez mrugania oknem: dezaktywacja/aktywacja paska (``WM_NCACTIVATE`` 0→1) plus
-    ``SetWindowPos`` z ``SWP_FRAMECHANGED``. Naprawia sytuację, gdy na Win10
-    pasek tytułu nie odświeża się po zmianie motywu. Uchwyt idzie z ustawionym
+    Bez mrugania oknem: ``SetWindowPos`` z ``SWP_FRAMECHANGED``, dezaktywacja/
+    aktywacja paska (``WM_NCACTIVATE`` 0→1) i synchroniczne ``RedrawWindow``
+    z ``RDW_FRAME`` (§4). Naprawia: belkę niezmienioną po dark→light oraz
+    artefakt Win10 — jasne tło pod tekstem tytułu. Uchwyt idzie z ustawionym
     ``argtypes`` (pointer-sized), więc nie ulega truncacji.
     """
+    user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, _SWP_FRAME_REDRAW)
     user32.SendMessageW(hwnd, _WM_NCACTIVATE, 0, 0)
     user32.SendMessageW(hwnd, _WM_NCACTIVATE, 1, 0)
-    user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, _SWP_FRAME_REDRAW)
+    user32.RedrawWindow(hwnd, None, None, _RDW_FRAME_REPAINT)
