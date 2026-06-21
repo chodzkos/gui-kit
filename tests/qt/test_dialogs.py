@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from PySide6.QtWidgets import QFileDialog, QToolButton
 from pytestqt.qtbot import QtBot
@@ -136,8 +138,8 @@ def test_dark_dialog_toolbar_buttons_get_icon_and_unclipped(
 
 def test_with_initial_name_join() -> None:
     """_with_initial_name: łączy katalog z nazwą; None → sam katalog; brak dir → sama nazwa."""
-    assert dialogs._with_initial_name("/tmp", "foo.png").endswith("foo.png")
-    assert "/tmp" in dialogs._with_initial_name("/tmp", "foo.png")
+    # Porównanie przez Path (OS-agnostyczne — na Windows separatorem jest "\").
+    assert Path(dialogs._with_initial_name("/tmp", "foo.png")) == Path("/tmp") / "foo.png"
     assert dialogs._with_initial_name("/tmp", None) == "/tmp"
     assert dialogs._with_initial_name("", "foo.png") == "foo.png"
 
@@ -155,8 +157,9 @@ def test_save_file_native_prefills_initial_name_in_dir(
 
     monkeypatch.setattr(dialogs.QFileDialog, "getSaveFileName", staticmethod(fake_save))
     dialogs.save_file(None, "Zapisz", "/tmp", "PNG (*.png)", initial_name="foo.png")
-    assert captured["dir"].endswith("foo.png")
-    assert "/tmp" in captured["dir"]
+    # OS-agnostycznie: katalog == /tmp, nazwa == foo.png (na Windows separator "\").
+    assert Path(captured["dir"]) == Path("/tmp") / "foo.png"
+    assert Path(captured["dir"]).name == "foo.png"
 
 
 def test_save_file_fallback_prefills_initial_name(
