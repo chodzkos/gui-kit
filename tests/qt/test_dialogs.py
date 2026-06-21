@@ -132,3 +132,54 @@ def test_dark_dialog_toolbar_buttons_get_icon_and_unclipped(
         assert button is not None
         assert not button.icon().isNull()
         assert "padding: 1px" in button.styleSheet()  # ciężki padding zneutralizowany
+
+
+def test_with_initial_name_join() -> None:
+    """_with_initial_name: łączy katalog z nazwą; None → sam katalog; brak dir → sama nazwa."""
+    assert dialogs._with_initial_name("/tmp", "foo.png").endswith("foo.png")
+    assert "/tmp" in dialogs._with_initial_name("/tmp", "foo.png")
+    assert dialogs._with_initial_name("/tmp", None) == "/tmp"
+    assert dialogs._with_initial_name("", "foo.png") == "foo.png"
+
+
+def test_save_file_native_prefills_initial_name_in_dir(
+    qtbot: QtBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Gałąź natywna: nazwa prefill trafia do ``dir`` getSaveFileName (razem z katalogiem)."""
+    monkeypatch.setattr(dialogs, "_native", lambda: True)
+    captured: dict[str, str] = {}
+
+    def fake_save(parent: object, title: str, directory: str, name_filter: str) -> tuple[str, str]:
+        captured["dir"] = directory
+        return ("", "")
+
+    monkeypatch.setattr(dialogs.QFileDialog, "getSaveFileName", staticmethod(fake_save))
+    dialogs.save_file(None, "Zapisz", "/tmp", "PNG (*.png)", initial_name="foo.png")
+    assert captured["dir"].endswith("foo.png")
+    assert "/tmp" in captured["dir"]
+
+
+def test_save_file_fallback_prefills_initial_name(
+    qtbot: QtBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Gałąź fallback: woła ``selectFile(initial_name)`` (symetria z natywną)."""
+    monkeypatch.setattr(dialogs, "_native", lambda: False)
+    monkeypatch.setattr(dialogs, "sync_titlebar", lambda *a, **k: None)
+    selected: list[str] = []
+    monkeypatch.setattr(dialogs.QFileDialog, "selectFile", lambda self, n: selected.append(n))
+    monkeypatch.setattr(dialogs.QFileDialog, "exec", lambda self: 0)  # anuluj — bez blokowania
+    dialogs.save_file(None, "Zapisz", "/tmp", "PNG (*.png)", initial_name="foo.png")
+    assert selected == ["foo.png"]
+
+
+def test_save_file_fallback_without_initial_name_skips_selectfile(
+    qtbot: QtBot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Bez ``initial_name`` fallback NIE woła selectFile (zachowanie jak dotąd)."""
+    monkeypatch.setattr(dialogs, "_native", lambda: False)
+    monkeypatch.setattr(dialogs, "sync_titlebar", lambda *a, **k: None)
+    selected: list[str] = []
+    monkeypatch.setattr(dialogs.QFileDialog, "selectFile", lambda self, n: selected.append(n))
+    monkeypatch.setattr(dialogs.QFileDialog, "exec", lambda self: 0)
+    dialogs.save_file(None, "Zapisz", "/tmp", "PNG (*.png)")
+    assert selected == []

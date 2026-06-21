@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.4]
+### Fixed
+- **`_repolish` repaintuje item-views** (`qt/theme.py`): po zmianie motywu wymusza `setPalette(app.palette())` + `viewport().update()` na `QAbstractItemView` (`QTableWidget`/`QTreeView`…). Naprawia stary ciemny `Base` po `dark→light` (Qt nie czyści per-widget resolve mask). **Celowane na item-views** (nie globalnie); flaga `apply_theme(..., repaint_item_views=True)` pozwala wyłączyć. GUI_STANDARD §4 v2.10.
+
+### Added
+- **`save_file(initial_name=…)`** (`qt/dialogs.py`): prefill nazwy zapisywanego pliku, **symetrycznie** w obu gałęziach — natywna przekazuje pełną ścieżkę w `dir` `getSaveFileName`, fallback woła `selectFile`. `initial_name=None` → zachowanie jak dotąd.
+
 ## [0.3.3]
 ### Fixed
 - **Repaint ramki DWM** (`winutil/dwm.py`): po zmianie koloru paska dokładamy synchroniczne `RedrawWindow(RDW_FRAME | RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOCHILDREN)` (z `argtypes`, uchwyt pointer-sized). Niweluje artefakt **Windows 10** — jasne tło pod tekstem tytułu po włączeniu `DWMWA_USE_IMMERSIVE_DARK_MODE`. Domyka parzystość z GUI_STANDARD §4 (który już przewidywał `WM_NCACTIVATE` + `RedrawWindow(RDW_FRAME)`).

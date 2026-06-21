@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from PySide6.QtGui import QPalette
-from PySide6.QtWidgets import QApplication, QToolTip
+from PySide6.QtGui import QColor, QPalette
+from PySide6.QtWidgets import QApplication, QTableWidget, QTableWidgetItem, QToolTip, QWidget
 
 from chodzkos_gui_kit.palette import DARK, LIGHT, Palette
 from chodzkos_gui_kit.qt import theme as theme_mod
@@ -180,3 +180,42 @@ def test_attach_titlebar_syncs_on_apply(
     # attach (dark) + apply(light) + apply(dark) → ostatnia wartość to dark=True.
     assert calls[-1] is True
     assert False in calls and True in calls
+
+
+def test_repolish_repaints_item_views_on_theme_switch(qapp: QApplication) -> None:
+    """QAbstractItemView dostaje świeżą paletę po dark→light (nie zostaje stary Base)."""
+    role = QPalette.ColorRole
+    table = QTableWidget(1, 1)
+    table.setItem(0, 0, QTableWidgetItem("x"))
+
+    apply_theme(qapp, DARK)
+    assert table.palette().color(role.Base).name() == DARK.bg3.lower()
+
+    apply_theme(qapp, LIGHT)
+    # Bez repaintu item-view zostałby DARK.bg3 — fix wymusza LIGHT.bg3.
+    assert table.palette().color(role.Base).name() == LIGHT.bg3.lower()
+
+
+def test_repolish_does_not_touch_non_item_views(qapp: QApplication) -> None:
+    """Celowanie: zwykły widget z WŁASNĄ paletą nie jest nadpisany (tylko item-views)."""
+    widget = QWidget()
+    custom = QPalette()
+    custom.setColor(QPalette.ColorRole.Base, QColor(1, 2, 3))
+    widget.setPalette(custom)
+
+    apply_theme(qapp, LIGHT)
+
+    assert widget.palette().color(QPalette.ColorRole.Base) == QColor(1, 2, 3)
+
+
+def test_apply_theme_repaint_item_views_can_be_disabled(qapp: QApplication) -> None:
+    """Flaga repaint_item_views=False NIE nadpisuje palety item-view (własna obsługa)."""
+    table = QTableWidget(1, 1)
+    custom = QPalette()
+    custom.setColor(QPalette.ColorRole.Base, QColor(1, 2, 3))
+    table.setPalette(custom)
+
+    apply_theme(qapp, DARK, repaint_item_views=False)
+
+    # Z wyłączoną flagą sentinel zostaje (dowód, że flaga steruje ścieżką item-views).
+    assert table.palette().color(QPalette.ColorRole.Base) == QColor(1, 2, 3)
