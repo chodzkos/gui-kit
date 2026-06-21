@@ -2,19 +2,25 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
 from PySide6.QtWidgets import QApplication
 
 from chodzkos_gui_kit.palette import DARK, LIGHT
 from chodzkos_gui_kit.qt import icons
+from chodzkos_gui_kit.qt import theme as kit_theme
 
 pytestmark = pytest.mark.qt
 
 
 @pytest.fixture(autouse=True)
-def _clear_icon_cache() -> None:
-    """Każdy test startuje z czystym cache ikon."""
+def _reset_icon_state() -> Iterator[None]:
+    """Każdy test startuje z czystym cache; po teście wraca do domyślnej palety DARK."""
     icons.clear_cache()
+    yield
+    icons.clear_cache()
+    kit_theme.set_current_palette(DARK)
 
 
 def test_icon_map_files_exist_in_package() -> None:
@@ -84,3 +90,29 @@ def test_resolve_color_uses_current_palette(monkeypatch: pytest.MonkeyPatch) -> 
     """Bez jawnej palety token bierze kolor z current_palette()."""
     monkeypatch.setattr(icons, "current_palette", lambda: LIGHT)
     assert icons._resolve_color("fg") == LIGHT.fg
+
+
+def test_icon_palette_follows_external_setter_and_apply_theme(qapp: QApplication) -> None:
+    """Oba wejścia zapisu palety (zewnętrzny setter i apply_theme) trafiają w ten sam stan.
+
+    Regresja: gdyby ktoś znów rozdzielił ścieżki zapisu ``_current``, kolor ikon
+    rozjechałby się z motywem. Dowód: kolor renderu (klucz cache niesie hex)
+    podąża za paletą ustawioną OBOMA wejściami.
+    """
+    # 1) Wejście zewnętrzne — konsument z WŁASNYM motywem ustawia paletę ikon.
+    kit_theme.set_current_palette(LIGHT)
+    assert kit_theme.current_palette() is LIGHT
+    icons.clear_cache()
+    light_icon = icons.get_icon("save")  # token domyślny → fg
+    assert not light_icon.isNull()
+    assert icons._resolve_color("fg") == LIGHT.fg
+    assert any(hex_color == LIGHT.fg for _name, hex_color, _size in icons._cache)
+
+    # 2) Drugie wejście — apply_theme trafia w ten sam _current (jedno źródło prawdy).
+    icons.clear_cache()
+    kit_theme.apply_theme(qapp, DARK)
+    assert kit_theme.current_palette() is DARK
+    dark_icon = icons.get_icon("save")
+    assert not dark_icon.isNull()
+    assert icons._resolve_color("fg") == DARK.fg
+    assert any(hex_color == DARK.fg for _name, hex_color, _size in icons._cache)

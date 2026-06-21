@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1]
+### Added
+- **`qt.theme.set_current_palette(palette)`** — publiczne ustawianie palety odczytywanej przez `IconProvider`, dla konsumentów z WŁASNYM motywem (np. qdarktheme): pozwala przebarwić ikony **bez przemalowania aplikacji** (żadnego `setPalette`/`setStyleSheet`). `apply_theme()` przechodzi teraz przez ten sam setter, więc istnieje dokładnie **jedno wejście zapisu** `_current` (brak rozjazdu koloru ikon z motywem UI). GUI_STANDARD §5 v2.8 sankcjonuje to jako wyjątek w ramach zasady „kolory tylko z palety".
+
 ## [0.3.0]
 ### Added
 - **`qt/icons.py` — `IconProvider` (przebarwialne SVG Lucide)** — ekstrakcja z IcoForge (pierwszy komponent v0.3, GUI_STANDARD §5/§7):

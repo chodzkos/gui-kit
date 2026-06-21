@@ -22,6 +22,7 @@ from chodzkos_gui_kit.qt.theme import (
     build_qss,
     current_palette,
     mode_of,
+    set_current_palette,
     system_scheme,
 )
 from chodzkos_gui_kit.qt.titlebar import TitlebarSync, set_titlebar_dark, sync_titlebar
@@ -43,6 +44,7 @@ __all__ = [
     "open_files",
     "pick_dir",
     "save_file",
+    "set_current_palette",
     "set_titlebar_dark",
     "sync_titlebar",
     "system_scheme",
