@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "chodzkos-gui-kit"
-version = "0.2.0"
+version = "0.3.0"
 description = "Wspólne komponenty GUI (tor Qt i tkinter) wg GUI_STANDARD.md — paleta marki, motywy, titlebar DWM, dialogi."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,6 +29,11 @@ Repository = "https://github.com/chodzkos/gui-kit"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/chodzkos_gui_kit"]
+# Dane pakietu: ikony Lucide (SVG) + LICENSE-icons MUSZĄ trafić do wheela (inaczej
+# get_icon nie znajdzie zasobów w zainstalowanej paczce). Leżą wewnątrz pakietu,
+# więc hatchling pakuje je domyślnie; `artifacts` to jawny bezpiecznik na wypadek,
+# gdyby kiedyś trafiły pod .gitignore (force-include duplikowałby je → błąd buildu).
+artifacts = ["src/chodzkos_gui_kit/assets/**/*.svg", "src/chodzkos_gui_kit/assets/**/LICENSE-icons"]
 
 [tool.ruff]
 line-length = 100

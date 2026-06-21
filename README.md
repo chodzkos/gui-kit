@@ -28,7 +28,9 @@ qt/               # WARSTWA 2a [extras: qt]
   theme.py        #   Fusion + QPalette + generator QSS; kanoniczna sekwencja apply()
   titlebar.py     #   reguła rozjazdu → winutil.dwm (HWND z winId)
   dialogs.py      #   natywny ⇔ zgodność motywów + skonfigurowany fallback
+  icons.py        #   przebarwialne SVG Lucide wg palety; cache + clear_cache (od v0.3)
   widgets/        #   (od v0.3 — reguła trzech, patrz ROADMAP)
+assets/icons/     #   ikony Lucide (SVG, currentColor) + LICENSE-icons (ISC)
 tk/               # WARSTWA 2b [extras: tk] — od v0.2
   theme.py        #   ttk.Style + rekurencyjne apply_theme; ThemeManager.apply(); darkdetect
   titlebar.py     #   GetParent(winfo_id) → winutil.dwm (ten sam DWM co Qt)
