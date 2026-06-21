@@ -4,11 +4,12 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-06-21 · **Wersja:** 2.8
+**Ostatnia rewizja:** 2026-06-21 · **Wersja:** 2.9
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.9 | DWM/ctypes: uchwyt okna ZAWSZE przez `wintypes.HWND` + ustawione `argtypes`, nigdy goły Python int — na Win64 goły int marshaluje się jako 32-bit `c_int` i TRUNCUJE 64-bit HWND (objaw: DWM/titlebar działa na części okien, na innych nie). Dotyczy obu torów (tk: `GetParent(winfo_id())` też zwraca uchwyt do opakowania) (2026-06-21) |
 | 2.8 | IconProvider: usankcjonowany wyjątek od „kolory tylko z palety" — konsument z WŁASNYM motywem (qdarktheme itp.) ustawia paletę ikon przez PUBLICZNE `set_current_palette()`, nie przez prywatne `_current`. To jedno publiczne wejście zapisu (kitowy `apply_theme()` przechodzi przez ten sam setter), więc nie ma drugiego źródła ani rozjazdu koloru ikon z motywem UI (2026-06-21) |
 | 2.7 | sekcja Ikonografia rozszerzona: zestaw Lucide (ISC) / Tabler (MIT) kopiowany do repo; mechanizm przebarwialnych SVG `get_icon()` z podmianą currentColor wg palety + cache + clear na theme_changed (powód: NIE statyczne PNG); ICON_MAP; zasada „nazwa→tooltip+setText"; audyt tooltipów. Komponent IconProvider w §7 (z IcoForge feat/icon-system) |
 | 2.6 | KOREKTA fallbacku toolbara: prawdziwa przyczyna pustych przycisków to przeciekający app-QSS `QToolButton{padding/border}` przycinający przypięty ~22px przycisk — NIE brak ikon. Fix: per-widget QSS zdejmujący padding/border (wyższa specyficzność) + standardIcon gdy pusta; PORZUCONO wymuszanie etykiet (nie mieszczą się w 22px). Test geometryczny size vs sizeHint (działa offscreen) |
@@ -180,6 +181,15 @@ Aplikacje docelowe, większe projekty, wszystko gdzie ciemny motyw i wygląd maj
   nie w `__init__`. *(Uwaga: rozróżnienie zgodność/rozjazd zostaje TYLKO dla
   dialogów — tam natywny vs nienatywny to realne albo-albo. Dla belki było
   błędną optymalizacją.)*
+- **HWND do ctypes ZAWSZE przez `wintypes.HWND` + ustawione `argtypes` (v2.9):**
+  nigdy nie przekazuj gołego Python int do `DwmSetWindowAttribute`/`SetWindowPos`/
+  `SendMessageW` — bez `argtypes` ctypes marshaluje int jako 32-bit `c_int` i
+  **TRUNCUJE 64-bit HWND na Win64** (objaw: DWM/belka działa na części okien, na
+  innych nie — zależnie od wartości uchwytu). Ustaw `func.argtypes` z uchwytem jako
+  `wintypes.HWND` (≡ `c_void_p`, pointer-sized) i `restype` (HRESULT=`c_long`,
+  BOOL=`c_int`); potem przekazuj surowy int — ctypes sam zrobi konwersję do
+  wskaźnika. Dotyczy OBU torów: tk również wyłuskuje uchwyt (`GetParent(winfo_id())`)
+  i podaje go do wspólnego `winutil.dwm`.
 - **Dialog odbiera focus → belka wraca do systemowej:** nadpisz `changeEvent`
   na `ActivationChange` i ponownie ustaw atrybut DWM wg motywu app
   (bezwarunkowo, jw.).

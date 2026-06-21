@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.2]
+### Fixed
+- **DWM HWND marshaling** (`winutil/dwm.py`): wywołania `DwmSetWindowAttribute`/`SetWindowPos`/`SendMessageW` dostały jawne `argtypes` z uchwytem jako `wintypes.HWND` (pointer-sized) + `restype`. Naprawia **truncację 64-bit HWND na Win64** — bez `argtypes` ctypes marshalował goły Python int jako 32-bit `c_int`, przez co DWM/pasek tytułu działał na części okien, na innych nie. Dotyczy wszystkich konsumentów (Qt i tk). GUI_STANDARD §4 v2.9.
+
 ## [0.3.1]
 ### Added
 - **`qt.theme.set_current_palette(palette)`** — publiczne ustawianie palety odczytywanej przez `IconProvider`, dla konsumentów z WŁASNYM motywem (np. qdarktheme): pozwala przebarwić ikony **bez przemalowania aplikacji** (żadnego `setPalette`/`setStyleSheet`). `apply_theme()` przechodzi teraz przez ten sam setter, więc istnieje dokładnie **jedno wejście zapisu** `_current` (brak rozjazdu koloru ikon z motywem UI). GUI_STANDARD §5 v2.8 sankcjonuje to jako wyjątek w ramach zasady „kolory tylko z palety".
