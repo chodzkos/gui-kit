@@ -29,7 +29,9 @@ qt/               # WARSTWA 2a [extras: qt]
   titlebar.py     #   reguła rozjazdu → winutil.dwm (HWND z winId)
   dialogs.py      #   natywny ⇔ zgodność motywów + skonfigurowany fallback
   widgets/        #   (od v0.3 — reguła trzech, patrz ROADMAP)
-tk/               # WARSTWA 2b [extras: tk]
+tk/               # WARSTWA 2b [extras: tk] — od v0.2
+  theme.py        #   ttk.Style + rekurencyjne apply_theme; ThemeManager.apply(); darkdetect
+  titlebar.py     #   GetParent(winfo_id) → winutil.dwm (ten sam DWM co Qt)
 ```
 
 Zasady żelazne:
@@ -52,9 +54,24 @@ window = MainWindow()
 tm.attach_titlebar(window)      # DWM tylko przy rozjeździe, w obu kierunkach
 ```
 
+## Szybki start (tkinter)
+
+```python
+import tkinter as tk
+from chodzkos_gui_kit.tk.theme import ThemeManager
+
+root = tk.Tk()
+tm = ThemeManager(root, config)   # config: chodzkos_gui_kit.config.Config albo dict
+tm.attach_titlebar(root)          # pasek tytułu = motyw app (DWM, bezwarunkowo)
+tm.apply("auto")                  # auto: darkdetect; None/nieznane → dark
+```
+
+Te same role/stany palety co tor Qt — kolory wyłącznie z `palette.py`, ten sam
+`winutil.dwm` pod paskiem tytułu.
+
 ## Status
 
-Kod toru Qt pochodzi z ekstrakcji sprawdzonego kodu **EpubForge** (etapy F) — patrz `PROMPTS.md` P1. Tor tkinter: od v0.2. Widgety wspólne: od v0.3, tylko z dwoma realnymi konsumentami.
+Kod toru Qt (v0.1) i tkinter (v0.2) pochodzi z ekstrakcji sprawdzonego kodu **EpubForge** (etapy F i kod sprzed migracji na Qt) — patrz `PROMPTS.md` P1/P3. Widgety wspólne: od v0.3, tylko z dwoma realnymi konsumentami.
 
 ## Licencja
 

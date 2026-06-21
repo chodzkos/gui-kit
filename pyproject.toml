@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "chodzkos-gui-kit"
-version = "0.1.1"
+version = "0.2.0"
 description = "Wspólne komponenty GUI (tor Qt i tkinter) wg GUI_STANDARD.md — paleta marki, motywy, titlebar DWM, dialogi."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -47,5 +47,6 @@ testpaths = ["tests"]
 markers = [
     "windows: testy wymagajace Windows/DWM (uruchamiane tylko przy tagu, manualnie lub na self-hosted)",
     "qt: testy wymagajace PySide6 (QT_QPA_PLATFORM=offscreen na CI)",
+    "tk: testy wymagajace zywego roota Tk (display); pomijane domyslnie jak windows",
 ]
-addopts = "-m 'not windows'"
+addopts = "-m 'not windows and not tk'"

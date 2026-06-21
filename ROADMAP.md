@@ -18,9 +18,9 @@ dwóch realnych konsumentów nie wchodzi wcale.
 
 ## v0.2.0 — tor tkinter
 
-- [ ] `tk/theme.py` — słownik z palette.py + rekurencyjne apply_theme + darkdetect
-- [ ] `tk/titlebar.py` — GetParent(winfo_id) → winutil.dwm
-- [ ] źródło ekstrakcji: kod tkinter EpubForge sprzed migracji (tag w repo EpubForge)
+- [x] `tk/theme.py` — palette_colors/widget_options z palette.py + rekurencyjne apply_theme + darkdetect
+- [x] `tk/titlebar.py` — GetParent(winfo_id) → winutil.dwm
+- [x] źródło ekstrakcji: kod tkinter EpubForge sprzed migracji (commit `f62266b^`, przed PR #22)
 - [ ] pierwsza konsumpcja: najbliższe małe narzędzie wg tabeli decyzyjnej §2
 
 ## v0.3.0 — widgety wspólne (TYLKO na żądanie drugiej aplikacji)
