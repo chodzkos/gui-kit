@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+### Docs
+- **GUI_STANDARD §4 → v2.11** (docs-only): dwie pułapki belki/DWM wyniesione na osobne punkty — (a) **`RedrawWindow(RDW_FRAME | RDW_INVALIDATE | RDW_UPDATENOW)` PO `WM_NCACTIVATE`+`SetWindowPos`** (Win10 zostawia jasne tło pod tytułem po zmianie motywu; w sekwencji DWM zostaje tylko odnośnik); (b) **belka jaśnieje podczas aktywnego resize** po zmianie motywu — granica nie do wyeliminowania bez migotania, synchronizuj PO zakończeniu ruchu (debounce ~120 ms / `WM_EXITSIZEMOVE`), nie w każdym `resizeEvent`; przy starcie w docelowym motywie nie występuje.
+
 ## [0.3.4]
 ### Fixed
 - **`_repolish` repaintuje item-views** (`qt/theme.py`): po zmianie motywu wymusza `setPalette(app.palette())` + `viewport().update()` na `QAbstractItemView` (`QTableWidget`/`QTreeView`…). Naprawia stary ciemny `Base` po `dark→light` (Qt nie czyści per-widget resolve mask). **Celowane na item-views** (nie globalnie); flaga `apply_theme(..., repaint_item_views=True)` pozwala wyłączyć. GUI_STANDARD §4 v2.10.

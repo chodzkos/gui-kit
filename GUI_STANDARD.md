@@ -4,11 +4,12 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-06-21 · **Wersja:** 2.10
+**Ostatnia rewizja:** 2026-06-21 · **Wersja:** 2.11
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.11 | Dwie pułapki belki/DWM wyniesione na osobne punkty §4: (a) **`RedrawWindow(RDW_FRAME\|RDW_INVALIDATE\|RDW_UPDATENOW)` PO `WM_NCACTIVATE`+`SetWindowPos`** — bez tego Win10 zostawia jasne tło pod tytułem po zmianie motywu (w sekwencji DWM tylko odnośnik); (b) **belka jaśnieje podczas aktywnego resize** — granica nie do wyeliminowania bez migotania, synchronizuj PO zakończeniu ruchu (debounce ~120ms / `WM_EXITSIZEMOVE`), nie w każdym `resizeEvent`; przy starcie w docelowym motywie nie występuje (2026-06-21) |
 | 2.10 | Repaint po zmianie motywu: `_repolish` CELOWO wymusza `setPalette(app.palette())` na `QAbstractItemView` (`QTableWidget`/`QTreeView`…) — te widoki trzymają per-widget resolve mask palety, której samo `unpolish`/`polish` NIE czyści (po dark→light zostawał stary ciemny Base). Celowane WYŁĄCZNIE na item-views; globalne `setPalette` nadpisałoby intencjonalne palety innych widgetów (2026-06-21) |
 | 2.9 | DWM/ctypes: uchwyt okna ZAWSZE przez `wintypes.HWND` + ustawione `argtypes`, nigdy goły Python int — na Win64 goły int marshaluje się jako 32-bit `c_int` i TRUNCUJE 64-bit HWND (objaw: DWM/titlebar działa na części okien, na innych nie). Dotyczy obu torów (tk: `GetParent(winfo_id())` też zwraca uchwyt do opakowania) (2026-06-21) |
 | 2.8 | IconProvider: usankcjonowany wyjątek od „kolory tylko z palety" — konsument z WŁASNYM motywem (qdarktheme itp.) ustawia paletę ikon przez PUBLICZNE `set_current_palette()`, nie przez prywatne `_current`. To jedno publiczne wejście zapisu (kitowy `apply_theme()` przechodzi przez ten sam setter), więc nie ma drugiego źródła ani rozjazdu koloru ikon z motywem UI (2026-06-21) |
@@ -178,7 +179,8 @@ Aplikacje docelowe, większe projekty, wszystko gdzie ciemny motyw i wygląd maj
   (objaw: jasny→ciemny→jasny, belka pozostaje czarna). Bezwarunkowe
   ustawienie na zgodności daje ten sam wynik co podążanie za systemem
   (bo motyw app == systemowy), więc zero kosztu, znika pułapka stanowości.
-  Dalej: `WM_NCACTIVATE` + `RedrawWindow(RDW_FRAME)`; `winId()` w `showEvent`,
+  Dalej: `WM_NCACTIVATE` + `SetWindowPos` + pełny repaint ramki (patrz pułapka
+  „Pełny repaint ramki na Win10" niżej); `winId()` w `showEvent`,
   nie w `__init__`. *(Uwaga: rozróżnienie zgodność/rozjazd zostaje TYLKO dla
   dialogów — tam natywny vs nienatywny to realne albo-albo. Dla belki było
   błędną optymalizacją.)*
@@ -191,6 +193,23 @@ Aplikacje docelowe, większe projekty, wszystko gdzie ciemny motyw i wygląd maj
   BOOL=`c_int`); potem przekazuj surowy int — ctypes sam zrobi konwersję do
   wskaźnika. Dotyczy OBU torów: tk również wyłuskuje uchwyt (`GetParent(winfo_id())`)
   i podaje go do wspólnego `winutil.dwm`.
+- **Pełny repaint ramki na Win10 — `RedrawWindow(RDW_FRAME|RDW_INVALIDATE|RDW_UPDATENOW)`
+  PO `WM_NCACTIVATE`+`SetWindowPos` (v2.11):** sam atrybut DWM + `SetWindowPos(SWP_FRAMECHANGED)`
+  NIE przemalowuje już narysowanej ramki na Win10 (**objaw: po zmianie motywu zostaje
+  JASNE tło pod tytułem** — belka niby ciemna, ale prześwituje stary kolor). Kolejność
+  jest istotna: `WM_NCACTIVATE`(0→1) → `SetWindowPos(SWP_FRAMECHANGED|NOMOVE|NOSIZE|NOZORDER)`
+  → `RedrawWindow(…, RDW_FRAME|RDW_INVALIDATE|RDW_UPDATENOW)`. Na Win11 zwykle zbędne,
+  ale nieszkodliwe — rób bezwarunkowo. *(IcoForge fix RedrawWindow / kit `winutil.dwm`.)*
+- **Belka jaśnieje podczas AKTYWNEGO resize po zmianie motywu (v2.11):** Windows
+  przerysowuje ramkę w trakcie ciągnięcia krawędzi i **RESETUJE ciemny atrybut DWM**;
+  nic go nie przywraca aż do następnego `ActivationChange` (stąd złudzenie „naprawia
+  się po otwarciu dialogu"). Tej granicy NIE da się wyeliminować bez migotania, więc
+  synchronizuj belkę **PO ZAKOŃCZENIU ruchu**: debounce ~120 ms restartowany przy
+  każdym `resizeEvent` (albo `WM_EXITSIZEMOVE` przez `nativeEvent`), **nigdy w każdym
+  `resizeEvent`** (przy ciągnięciu krawędzi leci dziesiątki wywołań/s). Wystarczy sync
+  samego okna zmienianego (inne top-levelki nie zmieniają rozmiaru — broadcast zbędny).
+  Przy starcie w docelowym motywie problem NIE występuje — to wyłącznie usterka
+  PRZEJŚCIA. *(EpubForge fix/titlebar-resize.)*
 - **Dialog odbiera focus → belka wraca do systemowej:** nadpisz `changeEvent`
   na `ActivationChange` i ponownie ustaw atrybut DWM wg motywu app
   (bezwarunkowo, jw.).
