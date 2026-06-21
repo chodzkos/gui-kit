@@ -53,6 +53,21 @@ def current_palette() -> Palette:
     return _current
 
 
+def set_current_palette(palette: Palette) -> None:
+    """Ustawia paletę odczytywaną przez IconProvider (:func:`current_palette`).
+
+    Dla konsumentów z WŁASNYM motywem (qdarktheme itp.) — pozwala przebarwić ikony
+    bez przemalowania aplikacji (NIE woła ``setPalette``/``setStyleSheet``).
+
+    NIE wołaj, jeśli używasz kitowego :class:`ThemeManager`: :func:`apply_theme`
+    robi to sam, a drugie źródło zapisu rozjechałoby kolor ikon z motywem UI. To
+    jedyne miejsce zapisu ``_current`` — ``apply_theme`` jest tylko jego najczęstszym
+    wołającym (jedno wejście = brak rozjazdu).
+    """
+    global _current
+    _current = palette
+
+
 def mode_of(palette: Palette) -> ThemeName:
     """Zwraca motyw palety jako ``ThemeName`` (zawęża ``Palette.name: str``)."""
     return "light" if palette.name == "light" else "dark"
@@ -155,14 +170,14 @@ def apply_theme(app: QApplication, palette: Palette) -> None:
     końcu jawna paleta tooltipów i przemalowanie istniejących widgetów. Aktualizuje
     też paletę modułową (:func:`current_palette`).
     """
-    global _current
     app.setStyle("Fusion")
     qpalette = build_palette(palette)
     app.setPalette(qpalette)
     app.setStyleSheet(build_qss(palette))
     QToolTip.setPalette(qpalette)
     _repolish(app)
-    _current = palette
+    # Jedyne wejście zapisu palety ikon — wspólne z konsumentami z własnym motywem.
+    set_current_palette(palette)
 
 
 def _repolish(app: QApplication) -> None:

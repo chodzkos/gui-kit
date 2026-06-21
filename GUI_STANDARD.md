@@ -4,11 +4,12 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-06-14 · **Wersja:** 2.7
+**Ostatnia rewizja:** 2026-06-21 · **Wersja:** 2.8
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.8 | IconProvider: usankcjonowany wyjątek od „kolory tylko z palety" — konsument z WŁASNYM motywem (qdarktheme itp.) ustawia paletę ikon przez PUBLICZNE `set_current_palette()`, nie przez prywatne `_current`. To jedno publiczne wejście zapisu (kitowy `apply_theme()` przechodzi przez ten sam setter), więc nie ma drugiego źródła ani rozjazdu koloru ikon z motywem UI (2026-06-21) |
 | 2.7 | sekcja Ikonografia rozszerzona: zestaw Lucide (ISC) / Tabler (MIT) kopiowany do repo; mechanizm przebarwialnych SVG `get_icon()` z podmianą currentColor wg palety + cache + clear na theme_changed (powód: NIE statyczne PNG); ICON_MAP; zasada „nazwa→tooltip+setText"; audyt tooltipów. Komponent IconProvider w §7 (z IcoForge feat/icon-system) |
 | 2.6 | KOREKTA fallbacku toolbara: prawdziwa przyczyna pustych przycisków to przeciekający app-QSS `QToolButton{padding/border}` przycinający przypięty ~22px przycisk — NIE brak ikon. Fix: per-widget QSS zdejmujący padding/border (wyższa specyficzność) + standardIcon gdy pusta; PORZUCONO wymuszanie etykiet (nie mieszczą się w 22px). Test geometryczny size vs sizeHint (działa offscreen) |
 | 2.5 | KOREKTA reguły belki: DWM ustawiany BEZWARUNKOWO = motyw app przy każdym apply() (atrybut DWM jest stanowy — „nic nie rób przy zgodności" zostawiało starą wartość → belka zamrożona; usterka po F-C); nota o timingu labelingu toolbara (po setOption, przed exec) |
@@ -353,6 +354,15 @@ Moduł (gui-kit: `qt/icons.py`) z funkcją `get_icon(name, color=None) -> QIcon`
   zmiany przy podmianie ikon (pencil/eraser/pipette/paint-bucket/square/
   square-dashed/arrow-left-right/rotate-ccw/zoom-in/zoom-out/save/undo-2/
   redo-2/copy/scissors/clipboard-paste/file-plus/folder-open/sun-moon/info…).
+- **Konsument z WŁASNYM motywem (usankcjonowany wyjątek, v2.8):** `get_icon`
+  czyta kolor z bieżącej palety (`current_palette()`), którą kitowy
+  `ThemeManager.apply()` ustawia sam. Aplikacja trzymająca własny silnik motywu
+  (np. qdarktheme) musi ustawić paletę ikon przez **PUBLICZNE
+  `set_current_palette(palette)`** (+ `clear_cache()` + `setIcon`) — NIGDY przez
+  prywatne `_current`. To wyjątek W RAMACH zasady „kolory tylko z palety": jedno
+  publiczne wejście zapisu (przez które idzie też `apply_theme`), więc brak
+  drugiego źródła i brak rozjazdu koloru ikon z motywem UI. Nie używaj go razem z
+  kitowym `ThemeManager` (podwójne sterowanie).
 
 #### Zasada „nazwa NIE znika, tylko się przenosi"
 Przy zamianie tekstowych etykiet na ikony (toolbar `ToolButtonIconOnly`,
