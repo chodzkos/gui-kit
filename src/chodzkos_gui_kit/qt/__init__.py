@@ -12,6 +12,7 @@ from chodzkos_gui_kit.qt.dialogs import (
     save_file,
     use_native_dialog,
 )
+from chodzkos_gui_kit.qt.icons import ICON_MAP, clear_cache, get_icon
 from chodzkos_gui_kit.qt.theme import (
     ThemeManager,
     ThemeName,
@@ -26,6 +27,7 @@ from chodzkos_gui_kit.qt.theme import (
 from chodzkos_gui_kit.qt.titlebar import TitlebarSync, set_titlebar_dark, sync_titlebar
 
 __all__ = [
+    "ICON_MAP",
     "ThemeManager",
     "ThemeName",
     "ThemeSetting",
@@ -33,7 +35,9 @@ __all__ = [
     "apply_theme",
     "build_palette",
     "build_qss",
+    "clear_cache",
     "current_palette",
+    "get_icon",
     "mode_of",
     "open_file",
     "open_files",

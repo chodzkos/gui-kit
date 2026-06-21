@@ -26,11 +26,11 @@ dwóch realnych konsumentów nie wchodzi wcale.
 ## v0.3.0 — widgety wspólne (TYLKO na żądanie drugiej aplikacji)
 
 Kandydaci (z GUI_STANDARD §7), każdy wchodzi dopiero gdy ma 2 konsumentów:
-- [ ] `qt/icons.py` (`IconProvider` / `get_icon`) — PIERWSZY w kolejce: zależy
+- [x] `qt/icons.py` (`IconProvider` / `get_icon`) — PIERWSZY w kolejce: zależy
       od tej samej palety i sygnału `theme_changed` co `theme.py`, więc
-      naturalnie domyka tor motywu. Źródło: IcoForge `feat/icon-system`
-      (kroki 4.1–4.6). Wnosi też `assets/icons/` (Lucide ISC) + LICENSE-icons.
-      Konsumenci: IcoForge + EpubForge/pdf2md (toolbary).
+      naturalnie domyka tor motywu. Źródło: IcoForge (kod scalony do `main`,
+      `gui/icons.py`). Wniósł `assets/icons/` (21 Lucide ISC) + LICENSE-icons.
+      Konsumenci: IcoForge (źródło) + EpubForge/pdf2md (toolbary, po wydaniu).
 - [ ] `qt/widgets/PathEntry` (pole + „…")
 - [ ] `qt/widgets/FileList` (toolbar + licznik + D&D)
 - [ ] `qt/widgets/Section`, `AboutPanel`, `LogStreamer`

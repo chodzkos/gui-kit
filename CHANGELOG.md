@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0]
+### Added
+- **`qt/icons.py` — `IconProvider` (przebarwialne SVG Lucide)** — ekstrakcja z IcoForge (pierwszy komponent v0.3, GUI_STANDARD §5/§7):
+  - `get_icon(name, color=None, size=20) -> QIcon`: podmiana `currentColor` na kolor z palety, render z obsługą HiDPI (`devicePixelRatio`), cache `(name, hex, size)`, `clear_cache()` do wołania na zmianę motywu.
+  - kolory WYŁĄCZNIE z `chodzkos_gui_kit.palette` (token → pole bieżącej palety przez `current_palette()`); domyślnie `fg`, semantyczne `red`/`amber`/`accent`, token `accent_text` (dark→accent, light→accent2) dla ikon w roli tekstu (reguła kontrastu §5). Zero hexów poza `palette.py`.
+  - `ICON_MAP` (akcja → plik SVG) jako jedyne miejsce zmiany zestawu; `assets/icons/` (21 ikon Lucide) + `LICENSE-icons` (ISC) pakowane do wheela.
+  - bez zależności cyklicznej: `icons` zna paletę, nie `ThemeManager` (`theme` nie importuje `icons`). Integracja po stronie aplikacji: `theme_changed.connect(clear_cache)` + ponowny `setIcon`.
+
 ## [0.2.0]
 ### Added
 - **Tor tkinter** (`tk/`, extra `[tk]`) — ekstrakcja kodu tkinter EpubForge sprzed migracji na Qt (commit `f62266b^`):
