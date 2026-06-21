@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.3]
+### Fixed
+- **Repaint ramki DWM** (`winutil/dwm.py`): po zmianie koloru paska dokładamy synchroniczne `RedrawWindow(RDW_FRAME | RDW_INVALIDATE | RDW_UPDATENOW | RDW_NOCHILDREN)` (z `argtypes`, uchwyt pointer-sized). Niweluje artefakt **Windows 10** — jasne tło pod tekstem tytułu po włączeniu `DWMWA_USE_IMMERSIVE_DARK_MODE`. Domyka parzystość z GUI_STANDARD §4 (który już przewidywał `WM_NCACTIVATE` + `RedrawWindow(RDW_FRAME)`).
+
 ## [0.3.2]
 ### Fixed
 - **DWM HWND marshaling** (`winutil/dwm.py`): wywołania `DwmSetWindowAttribute`/`SetWindowPos`/`SendMessageW` dostały jawne `argtypes` z uchwytem jako `wintypes.HWND` (pointer-sized) + `restype`. Naprawia **truncację 64-bit HWND na Win64** — bez `argtypes` ctypes marshalował goły Python int jako 32-bit `c_int`, przez co DWM/pasek tytułu działał na części okien, na innych nie. Dotyczy wszystkich konsumentów (Qt i tk). GUI_STANDARD §4 v2.9.
