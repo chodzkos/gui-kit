@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.4.3]
+### Fixed
+- **Przemalowanie ramki/przycisków na Win11** (`winutil/dwm.py`): w `_RDW_FRAME_REPAINT` zamieniono `RDW_NOCHILDREN` (0x0040) na `RDW_ALLCHILDREN` (0x0080) i dodano `RDW_ERASE` (0x0004). Win11 traktuje przyciski ramki (min/max/close) jak dzieci obszaru nieklienckiego — `RDW_NOCHILDREN` wykluczało je z przemalowania, więc po `dark→light` na **aktywnym** oknie belka i przyciski zostawały w starym kolorze do minimalizacji/przykrycia. Win10 działał wcześniej i działa nadal. GUI_STANDARD §4.
+
 ## [0.4.2]
 ### Added
 - **`qt/widgets/LogView`** — kolorowany log read-only (`QPlainTextEdit`), łączący wzorce EpubForge + pdf2md. `append_line(text, level)` (`QTextCharFormat`, bez HTML), limit `_MAX_BLOCKS=5000`, mono Consolas. **5 poziomów** mapowanych na role palety: `ok→accent`, `warn→amber`, `err→red`, `cmd→fg3`, `info→fg2`, nieznany→`fg`. **Re-render historii**: bufor wpisów + `set_theme(palette)` przemalowuje CAŁĄ historię (nie tylko nowe linie) — poprawność przy zmianie motywu. Wrappery zgodności `log_info`/`log_warning`/`log_error` (uwaga: `log_info → "ok"`, czyli akcent, nie wyszarzony `info`). `timestamps: bool=False` (prefiks `[HH:MM:SS]`). **Rozszerzalne poziomy** przez `level_colors: dict[str, str]` (nazwa roli palety — przeżywa zmianę motywu — albo gotowy kolor), bez zmiany kitu. Bez i18n (widget pokazuje tylko logi aplikacji).

@@ -36,10 +36,13 @@ _DWMWA_USE_IMMERSIVE_DARK_MODE_OLD = 19
 _WM_NCACTIVATE = 0x0086
 # SWP_NOSIZE | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED
 _SWP_FRAME_REDRAW = 0x0001 | 0x0002 | 0x0004 | 0x0010 | 0x0020
-# RDW_INVALIDATE | RDW_UPDATENOW | RDW_FRAME | RDW_NOCHILDREN — synchroniczne
-# przemalowanie ramki. RDW_FRAME niweluje artefakt Win10: jasne tło pod tekstem
-# tytułu po włączeniu DWMWA_USE_IMMERSIVE_DARK_MODE (GUI_STANDARD §4).
-_RDW_FRAME_REPAINT = 0x0001 | 0x0100 | 0x0400 | 0x0040
+# RDW_INVALIDATE | RDW_UPDATENOW | RDW_FRAME | RDW_ERASE | RDW_ALLCHILDREN —
+# synchroniczne przemalowanie ramki WRAZ z przyciskami (min/max/close). RDW_FRAME
+# niweluje artefakt Win10 (jasne tło pod tytułem po DWMWA_USE_IMMERSIVE_DARK_MODE).
+# Win11 traktuje przyciski ramki jak dzieci obszaru nieklienckiego: RDW_NOCHILDREN
+# WYKLUCZAŁO je z przemalowania (czarne/stare przyciski po dark→light na aktywnym
+# oknie) — RDW_ALLCHILDREN + RDW_ERASE wymusza ich odświeżenie (GUI_STANDARD §4).
+_RDW_FRAME_REPAINT = 0x0001 | 0x0100 | 0x0400 | 0x0004 | 0x0080
 
 
 def set_titlebar(hwnd: int, dark: bool) -> None:
