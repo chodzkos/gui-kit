@@ -1,6 +1,11 @@
 # Changelog
 
 ## [Unreleased]
+
+## [0.4.0]
+### Added
+- **`qt/widgets/PathEntry`** — pierwszy wspólny widget warstwy `qt/widgets` (wyniesiony z EpubForge). Pole `QLineEdit` + przycisk „…" otwierający kitowy dialog wg trybu (`mode` dir/file/save). API: `get()`/`set()`, sygnał `path_changed`, `filetypes`, `placeholder`, `config` + `remember_key` (zapamiętuje katalog ostatniego wyboru i startuje z niego). **Odsprzężony od aplikacji**: `config` to `DialogConfig` (`MutableMapping[str, Any]`, jak kitowe dialogi — `dict` wystarcza), a i18n jest przez parametry — teksty tooltipów/tytułów podaje `PathEntryTexts` (frozen dataclass, domyślne po angielsku; aplikacja wstrzykuje tłumaczenia). Kit nie zależy od żadnej aplikacji ani od gettext.
+
 ### Docs
 - **GUI_STANDARD §4 → v2.11** (docs-only): dwie pułapki belki/DWM wyniesione na osobne punkty — (a) **`RedrawWindow(RDW_FRAME | RDW_INVALIDATE | RDW_UPDATENOW)` PO `WM_NCACTIVATE`+`SetWindowPos`** (Win10 zostawia jasne tło pod tytułem po zmianie motywu; w sekwencji DWM zostaje tylko odnośnik); (b) **belka jaśnieje podczas aktywnego resize** po zmianie motywu — granica nie do wyeliminowania bez migotania, synchronizuj PO zakończeniu ruchu (debounce ~120 ms / `WM_EXITSIZEMOVE`), nie w każdym `resizeEvent`; przy starcie w docelowym motywie nie występuje.
 
