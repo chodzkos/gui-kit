@@ -25,7 +25,7 @@ import logging
 from collections.abc import MutableMapping
 from typing import Any, Literal
 
-from PySide6.QtCore import QObject, Qt, Signal
+from PySide6.QtCore import QObject, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QGuiApplication, QPalette
 from PySide6.QtWidgets import QAbstractItemView, QApplication, QToolTip, QWidget
 
@@ -289,9 +289,18 @@ class ThemeManager(QObject):
         sync.refresh()
 
     def _sync_titlebars(self) -> None:
-        """Ustawia pasek tytułu wszystkich dołączonych okien na motyw aplikacji."""
+        """Ustawia pasek tytułu wszystkich dołączonych okien na motyw aplikacji.
+
+        Przemalowanie po zmianie motywu (``apply()``) odraczamy o JEDEN cykl pętli
+        zdarzeń (``QTimer.singleShot(0)``): Win11 ignoruje programowe
+        ``WM_NCACTIVATE``/``RedrawWindow`` na oknie, które fizycznie pozostaje
+        aktywne, jeśli trafią ZANIM przyswoił zmianę atrybutu DWM — przyciski
+        ramki (min/max/close) zostają w starym kolorze. Odroczenie trafia w moment
+        gotowości. Ścieżki ``Show``/``ActivationChange`` (w ``TitlebarSync``)
+        zostają NATYCHMIASTOWE — ich odroczenie migałoby jasną belką przy otwarciu.
+        """
         for sync in self._titlebar_syncs:
-            sync.refresh()
+            QTimer.singleShot(0, sync.refresh)
 
     def _update_auto_subscription(self) -> None:
         """Podłącza ``colorSchemeChanged`` tylko w trybie auto, inaczej odłącza."""

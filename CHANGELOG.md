@@ -4,7 +4,7 @@
 
 ## [0.4.3]
 ### Fixed
-- **Przemalowanie ramki/przycisków na Win11** (`winutil/dwm.py`): w `_RDW_FRAME_REPAINT` zamieniono `RDW_NOCHILDREN` (0x0040) na `RDW_ALLCHILDREN` (0x0080) i dodano `RDW_ERASE` (0x0004). Win11 traktuje przyciski ramki (min/max/close) jak dzieci obszaru nieklienckiego — `RDW_NOCHILDREN` wykluczało je z przemalowania, więc po `dark→light` na **aktywnym** oknie belka i przyciski zostawały w starym kolorze do minimalizacji/przykrycia. Win10 działał wcześniej i działa nadal. GUI_STANDARD §4.
+- **Przemalowanie ramki/przycisków na Win11** (`winutil/dwm.py` + `qt/theme.py`): (1) w `_RDW_FRAME_REPAINT` zamieniono `RDW_NOCHILDREN` (0x0040) na `RDW_ALLCHILDREN` (0x0080) i dodano `RDW_ERASE` (0x0004) — Win11 traktuje przyciski ramki (min/max/close) jak dzieci obszaru nieklienckiego, więc `RDW_NOCHILDREN` wykluczało je z przemalowania; (2) `ThemeManager._sync_titlebars()` odracza przemalowanie belki o jeden cykl pętli zdarzeń (`QTimer.singleShot(0)`) — Win11 ignoruje programowe `WM_NCACTIVATE`/`RedrawWindow` na oknie, które fizycznie pozostaje aktywne, jeśli trafią zanim przyswoił zmianę atrybutu DWM; odroczenie trafia w moment gotowości. Ścieżki `Show`/`ActivationChange` zostają natychmiastowe (brak migotania belki przy otwarciu okna). Win10 działał wcześniej i działa nadal. GUI_STANDARD §4.
 
 ## [0.4.2]
 ### Added
