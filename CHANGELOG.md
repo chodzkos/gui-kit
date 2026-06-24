@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.4.2]
+### Added
+- **`qt/widgets/LogView`** — kolorowany log read-only (`QPlainTextEdit`), łączący wzorce EpubForge + pdf2md. `append_line(text, level)` (`QTextCharFormat`, bez HTML), limit `_MAX_BLOCKS=5000`, mono Consolas. **5 poziomów** mapowanych na role palety: `ok→accent`, `warn→amber`, `err→red`, `cmd→fg3`, `info→fg2`, nieznany→`fg`. **Re-render historii**: bufor wpisów + `set_theme(palette)` przemalowuje CAŁĄ historię (nie tylko nowe linie) — poprawność przy zmianie motywu. Wrappery zgodności `log_info`/`log_warning`/`log_error` (uwaga: `log_info → "ok"`, czyli akcent, nie wyszarzony `info`). `timestamps: bool=False` (prefiks `[HH:MM:SS]`). **Rozszerzalne poziomy** przez `level_colors: dict[str, str]` (nazwa roli palety — przeżywa zmianę motywu — albo gotowy kolor), bez zmiany kitu. Bez i18n (widget pokazuje tylko logi aplikacji).
+
 ## [0.4.1]
 ### Added
 - **`qt/widgets/FileList`** — lista plików z toolbarem i natywnym drag&drop (wyniesiona z EpubForge). API: `files()`/`add_files()`/`clear()`/`current_path()`/`select_first()`, sygnały `files_changed`/`selection_changed`, toolbar +Files/+Folder/Remove/Clear, D&D z rekursją folderów (`rglob`), licznik. **Odsprzężony**: `config` to `DialogConfig`; i18n przez `FileListTexts` (frozen dataclass, ang. domyślne); licznik przez wstrzykiwany `count_label: Callable[[int], str]` (aplikacja podaje `ngettext` — kit bez gettext); `extensions: Iterable[str] | None` (brak → akceptuj wszystko); `confirm` hook zachowany. **`add_files` przyjmuje `str | Path`** i normalizuje do `Path`, `files()` zwraca `list[Path]` — godzi konsumentów na łańcuchach (pdf2md) i ścieżkach (EpubForge). Ułożony pod przyszły `UrlList`: szkielet wizualny (toolbar+lista+sygnały) oddzielony od logiki wejścia (filtr ext, rekursja, normalizacja) — bez przedwczesnej bazy abstrakcyjnej.
