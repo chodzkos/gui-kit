@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.4.1]
+### Added
+- **`qt/widgets/FileList`** — lista plików z toolbarem i natywnym drag&drop (wyniesiona z EpubForge). API: `files()`/`add_files()`/`clear()`/`current_path()`/`select_first()`, sygnały `files_changed`/`selection_changed`, toolbar +Files/+Folder/Remove/Clear, D&D z rekursją folderów (`rglob`), licznik. **Odsprzężony**: `config` to `DialogConfig`; i18n przez `FileListTexts` (frozen dataclass, ang. domyślne); licznik przez wstrzykiwany `count_label: Callable[[int], str]` (aplikacja podaje `ngettext` — kit bez gettext); `extensions: Iterable[str] | None` (brak → akceptuj wszystko); `confirm` hook zachowany. **`add_files` przyjmuje `str | Path`** i normalizuje do `Path`, `files()` zwraca `list[Path]` — godzi konsumentów na łańcuchach (pdf2md) i ścieżkach (EpubForge). Ułożony pod przyszły `UrlList`: szkielet wizualny (toolbar+lista+sygnały) oddzielony od logiki wejścia (filtr ext, rekursja, normalizacja) — bez przedwczesnej bazy abstrakcyjnej.
+
 ## [0.4.0]
 ### Added
 - **`qt/widgets/PathEntry`** — pierwszy wspólny widget warstwy `qt/widgets` (wyniesiony z EpubForge). Pole `QLineEdit` + przycisk „…" otwierający kitowy dialog wg trybu (`mode` dir/file/save). API: `get()`/`set()`, sygnał `path_changed`, `filetypes`, `placeholder`, `config` + `remember_key` (zapamiętuje katalog ostatniego wyboru i startuje z niego). **Odsprzężony od aplikacji**: `config` to `DialogConfig` (`MutableMapping[str, Any]`, jak kitowe dialogi — `dict` wystarcza), a i18n jest przez parametry — teksty tooltipów/tytułów podaje `PathEntryTexts` (frozen dataclass, domyślne po angielsku; aplikacja wstrzykuje tłumaczenia). Kit nie zależy od żadnej aplikacji ani od gettext.

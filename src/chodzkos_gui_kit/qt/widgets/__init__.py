@@ -6,6 +6,7 @@ Widgety odsprzężone od aplikacji: config przez ``DialogConfig``
 
 from __future__ import annotations
 
+from chodzkos_gui_kit.qt.widgets.file_list import FileList, FileListTexts
 from chodzkos_gui_kit.qt.widgets.path_entry import (
     FileTypes,
     PathEntry,
@@ -13,4 +14,11 @@ from chodzkos_gui_kit.qt.widgets.path_entry import (
     PathMode,
 )
 
-__all__ = ["FileTypes", "PathEntry", "PathEntryTexts", "PathMode"]
+__all__ = [
+    "FileList",
+    "FileListTexts",
+    "FileTypes",
+    "PathEntry",
+    "PathEntryTexts",
+    "PathMode",
+]
