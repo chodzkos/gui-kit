@@ -5,3 +5,6 @@ dist/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
+logs/
+# Windows ADS marker plików pobranych (WSL widzi je jako osobne pliki)
+*:Zone.Identifier
