@@ -175,13 +175,8 @@ def test_attach_titlebar_syncs_on_apply(
     manager = ThemeManager(qapp, {})
     manager.attach_titlebar(window)  # natychmiastowy sync (paleta startowa = dark)
 
-    # apply() odracza przemalowanie belki o cykl pętli zdarzeń (singleShot, fix Win11),
-    # więc spinujemy pętlę MIĘDZY zmianami — tak jak w realnym użyciu (zmiany motywu
-    # są rozdzielone w czasie). Bez tego oba odroczenia odczytałyby już finalny motyw.
     manager.apply("light")
-    qtbot.wait(20)
     manager.apply("dark")
-    qtbot.wait(20)
     # attach (dark) + apply(light) + apply(dark) → ostatnia wartość to dark=True.
     assert calls[-1] is True
     assert False in calls and True in calls

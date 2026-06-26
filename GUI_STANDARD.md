@@ -4,11 +4,12 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-06-21 · **Wersja:** 2.11
+**Ostatnia rewizja:** 2026-06-26 · **Wersja:** 2.12
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.12 | Granica belki na Win11 wyniesiona na osobny punkt §4: **przyciski ramki (min/max/close) NIE przemalowują się po zmianie motywu aktywnego okna** — Win11 ignoruje programowe `WM_NCACTIVATE`+`RedrawWindow` na oknie pozostającym aktywnym; przemalowuje dopiero przy fizycznym zdarzeniu stanu (minimalizacja/przykrycie/dialog). Sprawdzone i nieskuteczne: `RDW_ALLCHILDREN` (zostawione, nieszkodliwe), `QTimer` odroczenie. To granica, nie usterka — przyciski działają, wracają przy interakcji. Trzecia z rodziny „Win11 maluje ramkę po swojemu" (obok resize i okien w tle) (2026-06-26) |
 | 2.11 | Dwie pułapki belki/DWM wyniesione na osobne punkty §4: (a) **`RedrawWindow(RDW_FRAME\|RDW_INVALIDATE\|RDW_UPDATENOW)` PO `WM_NCACTIVATE`+`SetWindowPos`** — bez tego Win10 zostawia jasne tło pod tytułem po zmianie motywu (w sekwencji DWM tylko odnośnik); (b) **belka jaśnieje podczas aktywnego resize** — granica nie do wyeliminowania bez migotania, synchronizuj PO zakończeniu ruchu (debounce ~120ms / `WM_EXITSIZEMOVE`), nie w każdym `resizeEvent`; przy starcie w docelowym motywie nie występuje (2026-06-21) |
 | 2.10 | Repaint po zmianie motywu: `_repolish` CELOWO wymusza `setPalette(app.palette())` na `QAbstractItemView` (`QTableWidget`/`QTreeView`…) — te widoki trzymają per-widget resolve mask palety, której samo `unpolish`/`polish` NIE czyści (po dark→light zostawał stary ciemny Base). Celowane WYŁĄCZNIE na item-views; globalne `setPalette` nadpisałoby intencjonalne palety innych widgetów (2026-06-21) |
 | 2.9 | DWM/ctypes: uchwyt okna ZAWSZE przez `wintypes.HWND` + ustawione `argtypes`, nigdy goły Python int — na Win64 goły int marshaluje się jako 32-bit `c_int` i TRUNCUJE 64-bit HWND (objaw: DWM/titlebar działa na części okien, na innych nie). Dotyczy obu torów (tk: `GetParent(winfo_id())` też zwraca uchwyt do opakowania) (2026-06-21) |
@@ -210,6 +211,24 @@ Aplikacje docelowe, większe projekty, wszystko gdzie ciemny motyw i wygląd maj
   samego okna zmienianego (inne top-levelki nie zmieniają rozmiaru — broadcast zbędny).
   Przy starcie w docelowym motywie problem NIE występuje — to wyłącznie usterka
   PRZEJŚCIA. *(EpubForge fix/titlebar-resize.)*
+- **Przyciski ramki (min/max/close) nie przemalowują się na Win11 po zmianie
+  motywu AKTYWNEGO okna (v2.12):** po `apply()` ciemny atrybut DWM zmienia tło
+  belki, ale **przyciski systemowe zostają w starym kolorze** (czarne na ciemnym
+  tle → niewidoczne) aż do FIZYCZNEGO zdarzenia stanu okna: minimalizacji,
+  przykrycia innym oknem, otwarcia dialogu (realny `ActivationChange`). Win11
+  IGNORUJE programowe `WM_NCACTIVATE`(0→1)+`RedrawWindow` na oknie, które fizycznie
+  pozostaje aktywne — przemalowuje ramkę tylko przy realnej zmianie aktywacji.
+  **Sprawdzone i NIE pomaga:** `RDW_ALLCHILDREN` zamiast `RDW_NOCHILDREN`
+  (zostawione — nieszkodliwe, może pomagać na Win10/innych buildach); odroczenie
+  przemalowania przez `QTimer.singleShot(0, …)` (hipoteza „timing" — odrzucona).
+  To GRANICA Win11, nie usterka kodu: przyciski aktywnego okna przemalowują się
+  dopiero przy fizycznym zdarzeniu stanu. Przyciski DZIAŁAJĄ (klikalne), są tylko
+  chwilowo źle pomalowane; wracają do koloru przy pierwszej interakcji z oknem.
+  NIE forsować micro-resize/sztucznej dezaktywacji — nieproporcjonalne do
+  kosmetyki przejścia, którego użytkownik dokonuje rzadko (app zwykle na jednym
+  motywie). Wspólny mianownik z granicą resize i oknami w tle: **Win11 maluje
+  ramkę, gdy SAM uzna, że trzeba — programowe wymuszenie nie zawsze go przekonuje.**
+  *(kit `winutil.dwm`; testowane na Win11, pin fix/win11-frame-repaint.)*
 - **Dialog odbiera focus → belka wraca do systemowej:** nadpisz `changeEvent`
   na `ActivationChange` i ponownie ustaw atrybut DWM wg motywu app
   (bezwarunkowo, jw.).
