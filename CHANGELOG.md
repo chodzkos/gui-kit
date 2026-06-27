@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.5.0]
+### Added
+- **`qt/widgets/HelpWindow`** — okno pomocy z zakładkami (wyniesione z pdf2md). API: `HelpWindow(parent=None, *, title="Help", tabs=None)`, gdzie `tabs: list[tuple[str, str]]` to `(tytuł, html)` **wstrzykiwane w pętli** (bez sztywnych `_make_X_tab`). **Re-render przy zmianie motywu**: `changeEvent` na `PaletteChange` woła `setHtml` PONOWNIE z tym samym html — `QTextBrowser` rozwiązuje `palette(...)` do konkretnych kolorów przy każdym `setHtml`, więc statyczna lista `tabs` wystarcza (factory zbędne). Belka tytułu przez kitowy `TitlebarSync` (motyw leniwie z `current_palette`); `resize(720, 560)` bez persystencji geometrii; przycisk „Close" przez `QDialogButtonBox` (i18n Qt). **Bez parametrów i18n poza `title`** — treść to parametr.
+- **`qt/widgets/help_html`** — helpery składania treści pomocy jako HTML motyw-świadomy: `section`/`paragraph`/`unordered_list`/`table`/`code`/`preformatted`. Kolory powierzchni WYŁĄCZNIE przez `palette(alternate-base)` (tło) + `palette(text)` (tekst) — zero hexów, czytelne w obu motywach po re-renderze. Reeksport w `qt/widgets/__init__`.
+
 ## [0.4.3]
 ### Fixed
 - **Przemalowanie ramki na Win11** (`winutil/dwm.py`): w `_RDW_FRAME_REPAINT` zamieniono `RDW_NOCHILDREN` (0x0040) na `RDW_ALLCHILDREN` (0x0080) i dodano `RDW_ERASE` (0x0004), aby obejmować dzieci obszaru nieklienckiego. Win10 działał wcześniej i działa nadal.
