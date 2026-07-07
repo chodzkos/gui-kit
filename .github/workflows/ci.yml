@@ -30,6 +30,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 python3-tk
       - name: Tests (bez markera windows)
         run: uv run pytest
+      - name: Audit zależności (miękkie ostrzeżenie, nie blokuje CI)
+        # pip-audit sprawdza zsynchronizowane środowisko (runtime + extras) pod
+        # kątem znanych podatności (OSV/PyPI). continue-on-error = tylko ostrzeżenie.
+        continue-on-error: true
+        run: uv run --extra qt --extra tk --extra dev --with pip-audit pip-audit
 
   # Bramka pakowania: wheel MUSI wozić ikony SVG + LICENSE-icons + py.typed,
   # inaczej get_icon pada w zainstalowanej paczce (pyproject.toml to ostrzega).
