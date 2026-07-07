@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+- **`qt/widgets/help_html` — escaping granicy zaufania** (treść trafia surowo do `QTextBrowser.setHtml`): helpery TREŚCI `code`/`preformatted` oraz nagłówki i komórki `table` escapują wejście przez `html.escape` (`quote=False`), więc `code("a < b & c")`, listingi z przekierowaniami powłoki (`>`/`<`) i dane tabel renderują się dosłownie zamiast być interpretowane jako znaczniki. Helpery STRUKTURY `section`/`paragraph`/`unordered_list` pozostają punktami składania (HTML zaufany/zescapowany) — udokumentowane w docstringach modułu i funkcji wraz z przykładem `html.escape` po stronie konsumenta. **Zmiana zachowania**: konsument, który wcześniej wstrzykiwał HTML do `code`/`preformatted`/komórek `table`, dostanie teraz treść zescapowaną (dosłowną); do zagnieżdżania używaj helperów struktury. Publiczne sygnatury bez zmian.
 
 ## [0.5.0]
 ### Added
