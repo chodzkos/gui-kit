@@ -30,9 +30,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 python3-tk
       - name: Tests (bez markera windows) + pokrycie
         # Raport pokrycia w logu (term-missing pokazuje niepokryte linie, m.in.
-        # fallbacki/gałęzie dialogów). Na razie BEZ --cov-fail-under — najpierw mierzymy.
-        # dwm.py (ctypes Windows) mierzą osobno joby windows-dwm/windows-tag.
-        run: uv run pytest --cov=src/chodzkos_gui_kit --cov-report=term-missing
+        # fallbacki/gałęzie dialogów). Próg 80% jako floor: zmierzone na tym jobie
+        # 86%, margines pochłania linie strukturalnie niepokrywalne na Linuksie
+        # (ctypes Windows w dwm.py + żywy root/Windows w torze tk — mierzą je joby
+        # windows-dwm/windows-tag). Podnieść po dołożeniu testów gałęzi natywnej dialogów.
+        run: uv run pytest --cov=src/chodzkos_gui_kit --cov-report=term-missing --cov-fail-under=80
       - name: Audit zależności (miękkie ostrzeżenie, nie blokuje CI)
         # pip-audit sprawdza zsynchronizowane środowisko (runtime + extras) pod
         # kątem znanych podatności (OSV/PyPI). continue-on-error = tylko ostrzeżenie.
