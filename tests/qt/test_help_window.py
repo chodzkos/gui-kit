@@ -104,3 +104,34 @@ def test_code_and_pre_use_palette_surface_not_hex() -> None:
         assert "palette(alternate-base)" in html
         assert "palette(text)" in html
         assert "#" not in html
+
+
+def test_code_escapes_content() -> None:
+    """Helper treści: ``code`` escapuje tekst (granica zaufania → setHtml)."""
+    out = help_html.code("a < b & c")
+    assert "a &lt; b &amp; c" in out
+    # Surowy znacznik nie może przeciec do HTML.
+    assert "a < b" not in out
+    assert "<code" in out  # własne znaczniki helpera zostają
+
+
+def test_preformatted_escapes_content() -> None:
+    """Helper treści: ``preformatted`` escapuje listing (np. przekierowania powłoki)."""
+    out = help_html.preformatted("grep x <in >out & tail")
+    assert "grep x &lt;in &gt;out &amp; tail" in out
+    assert "<in" not in out.replace("<pre", "")  # tylko własny <pre>, nie treść
+
+
+def test_table_escapes_headers_and_cells() -> None:
+    """Helper treści: nagłówki i komórki tabeli są escapowane jako dane."""
+    out = help_html.table(["a & b"], [["x < y"]])
+    assert ">a &amp; b</th>" in out
+    assert ">x &lt; y</td>" in out
+
+
+def test_structure_helpers_do_not_escape_composed_html() -> None:
+    """Helpery struktury składają zaufany HTML — NIE escapują (kontrakt kompozycji)."""
+    # paragraph/section/unordered_list przepuszczają zagnieżdżony HTML bez zmian.
+    assert help_html.paragraph(help_html.code("ls")) == f"<p>{help_html.code('ls')}</p>"
+    assert help_html.section("T", "<p>x</p>") == "<h3>T</h3><p>x</p>"
+    assert help_html.unordered_list("<b>a</b>") == "<ul><li><b>a</b></li></ul>"
