@@ -1,0 +1,30 @@
+name: Windows DWM
+
+# Tani feedback dla najbardziej regresogennego kodu (ctypes/DWM). Pełny przebieg
+# Windows z markerem `windows` URUCHAMIA SIĘ TYLKO, gdy PR dotyka ścieżek realnie
+# wpływających na zachowanie DWM (łańcuch dwm.py → titlebar.py → theme.py).
+#
+# Filtr `paths` istnieje wyłącznie na poziomie workflow (GitHub Actions nie ma
+# per-job `paths`), dlatego to OSOBNY plik, a nie job w ci.yml — dzięki temu przy
+# PR-ach nietykających DWM runner Windows w ogóle nie startuje (zero minut).
+# Pełny przebieg Windows przy tagu v* robi nadal job `windows-tag` w ci.yml.
+on:
+  pull_request:
+    paths:
+      - 'src/chodzkos_gui_kit/winutil/**'      # dwm.py: ctypes, flagi RDW_*, sygnatury HWND
+      - 'src/chodzkos_gui_kit/**/titlebar.py'  # qt/tk: TitlebarSync, GetParent, set_titlebar
+      - 'src/chodzkos_gui_kit/**/theme.py'      # attach_titlebar / _sync_titlebars (orkiestracja DWM)
+      - '.github/workflows/windows-dwm.yml'     # zmiana samego workflow testuje workflow
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-dwm:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: astral-sh/setup-uv@38f3f104447c67c051c4a08e39b64a148898af3a # v4.2.0
+      - run: uv sync --extra qt --extra tk --extra dev
+      - run: uv run pytest -m "windows or not windows"
