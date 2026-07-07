@@ -1,0 +1,37 @@
+# Dependabot — cotygodniowe PR-y z aktualizacjami zależności Pythona i akcji GitHub.
+# pip czyta pyproject.toml (PEP 621: dependencies + optional-dependencies).
+version: 2
+updates:
+  # Zależności Pythona: runtime (PySide6, platformdirs, darkdetect, tkinterdnd2)
+  # + extras qt/tk/dev z pyproject.toml.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      # Narzędzia deweloperskie w jednym zbiorczym PR (mniej szumu, wspólny bump).
+      dev-dependencies:
+        patterns:
+          - "pytest*" # pytest + pytest-qt
+          - "ruff"
+          - "mypy"
+    # Runtime (PySide6, platformdirs, darkdetect, tkinterdnd2) celowo BEZ grupy —
+    # osobne PR-y, bo pojedynczą zmianę w zainstalowanej paczce łatwiej ocenić.
+
+  # Akcje GitHub — pilnuje aktualności pinów SHA z ci.yml (G5).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
