@@ -27,7 +27,14 @@ jobs:
       - name: Install Qt offscreen libs + Tk
         # python3-tk dostarcza _tkinter do systemowego Pythona (Ubuntu trzyma go
         # w osobnej paczce) — testy toru tk robią `import tkinter` (bez display).
-        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 python3-tk
+        # Hostowane runnery bywają czerwone na `apt-get update`, bo wstępnie
+        # skonfigurowane repo third-party (packages.microsoft.com / azure-cli) serwuje
+        # wadliwy InRelease. Nie potrzebujemy go — usuwamy jego źródła, zostają
+        # repozytoria Ubuntu z libegl1/libgl1/python3-tk. To flake infry, nie nasz błąd.
+        run: |
+          sudo grep -rlZ packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null | sudo xargs -0 -r rm -f
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 python3-tk
       - name: Tests (bez markera windows) + pokrycie
         # Raport pokrycia w logu (term-missing pokazuje niepokryte linie, m.in.
         # fallbacki/gałęzie dialogów). Próg 80% jako floor: zmierzone na tym jobie
@@ -65,7 +72,11 @@ jobs:
           print("OK: wheel zawiera ikony SVG, LICENSE-icons i py.typed")
           PY
       - name: Install Qt offscreen libs
-        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1
+        # Usuwamy wadliwe repo third-party przed update — patrz komentarz w jobie test.
+        run: |
+          sudo grep -rlZ packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null | sudo xargs -0 -r rm -f
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1
       - name: Smoke-test built wheel in fresh venv (extra qt)
         # Instalacja zbudowanego wheela (nie edytowalnego repo) do czystego venv
         # + import toru Qt — łapie brak assetów/zależności w realnej paczce.
