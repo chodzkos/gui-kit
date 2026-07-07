@@ -31,6 +31,39 @@ jobs:
       - name: Tests (bez markera windows)
         run: uv run pytest
 
+  # Bramka pakowania: wheel MUSI wozić ikony SVG + LICENSE-icons + py.typed,
+  # inaczej get_icon pada w zainstalowanej paczce (pyproject.toml to ostrzega).
+  build:
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - name: Build sdist + wheel
+        run: uv build
+      - name: Verify wheel bundles assets (icons SVG, LICENSE-icons, py.typed)
+        run: |
+          python3 - <<'PY'
+          import glob, zipfile
+          whl = glob.glob("dist/*.whl")
+          assert whl, "brak wheela w dist/"
+          names = zipfile.ZipFile(whl[0]).namelist()
+          assert any(n.startswith("chodzkos_gui_kit/assets/icons/") and n.endswith(".svg") for n in names), "wheel bez ikon SVG (assets/icons/*.svg)"
+          assert "chodzkos_gui_kit/assets/icons/LICENSE-icons" in names, "wheel bez LICENSE-icons"
+          assert "chodzkos_gui_kit/py.typed" in names, "wheel bez py.typed"
+          print("OK: wheel zawiera ikony SVG, LICENSE-icons i py.typed")
+          PY
+      - name: Install Qt offscreen libs
+        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1
+      - name: Smoke-test built wheel in fresh venv (extra qt)
+        # Instalacja zbudowanego wheela (nie edytowalnego repo) do czystego venv
+        # + import toru Qt — łapie brak assetów/zależności w realnej paczce.
+        run: |
+          uv venv /tmp/smoke
+          uv pip install --python /tmp/smoke "$(ls dist/*.whl)[qt]"
+          /tmp/smoke/bin/python -c "import chodzkos_gui_kit; from chodzkos_gui_kit.qt import icons"
+
   # Testy DWM/Windows tylko przy tagu — oszczędzanie minut (GUI_STANDARD §9)
   windows-tag:
     if: startsWith(github.ref, 'refs/tags/v')
