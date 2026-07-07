@@ -28,8 +28,11 @@ jobs:
         # python3-tk dostarcza _tkinter do systemowego Pythona (Ubuntu trzyma go
         # w osobnej paczce) — testy toru tk robią `import tkinter` (bez display).
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 python3-tk
-      - name: Tests (bez markera windows)
-        run: uv run pytest
+      - name: Tests (bez markera windows) + pokrycie
+        # Raport pokrycia w logu (term-missing pokazuje niepokryte linie, m.in.
+        # fallbacki/gałęzie dialogów). Na razie BEZ --cov-fail-under — najpierw mierzymy.
+        # dwm.py (ctypes Windows) mierzą osobno joby windows-dwm/windows-tag.
+        run: uv run pytest --cov=src/chodzkos_gui_kit --cov-report=term-missing
       - name: Audit zależności (miękkie ostrzeżenie, nie blokuje CI)
         # pip-audit sprawdza zsynchronizowane środowisko (runtime + extras) pod
         # kątem znanych podatności (OSV/PyPI). continue-on-error = tylko ostrzeżenie.
