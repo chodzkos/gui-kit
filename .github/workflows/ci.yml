@@ -69,7 +69,10 @@ jobs:
           uv pip install --python /tmp/smoke "$(ls dist/*.whl)[qt]"
           /tmp/smoke/bin/python -c "import chodzkos_gui_kit; from chodzkos_gui_kit.qt import icons"
 
-  # Testy DWM/Windows tylko przy tagu — oszczędzanie minut (GUI_STANDARD §9)
+  # Pełny przebieg Windows (wszystkie testy) przy tagu v*. Na zwykłym PR feedback
+  # dla kodu DWM daje osobny workflow `windows-dwm.yml` — odpala się tylko przy
+  # zmianie ścieżek DWM (dwm/titlebar/theme), więc nie płacimy minut Windows na
+  # każdym PR. Tu zostaje pełny run przy wydaniu (GUI_STANDARD §9).
   windows-tag:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
