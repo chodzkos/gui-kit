@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Fixed
+- **`tk/titlebar` — pointer-sized ctypes dla `GetParent`** (`_window_hwnd`): sygnatury ustawiane przez wydzielony `_configure_getparent` (na wzór `dwm._configure_signatures`) — `GetParent.argtypes = (wintypes.HWND,)`, `restype = wintypes.HWND`. Bez tego goły Python int marshaluje się jako 32-bit `c_int` i **truncuje 64-bit HWND na Win64**, a domyślny `restype=c_int` zwraca uchwyt z bitem 31 jako liczbę ujemną (GUI_STANDARD §4 v2.9). Wynik (`HWND`) konwertowany do `int`, `NULL → None`; `wintypes` importowany lokalnie tylko na Windows (moduł nadal importuje się na innych platformach), obsługa wyjątków i `update_idletasks` bez zmian. Publiczne API bez zmian.
 - **`qt/widgets/help_html` — escaping granicy zaufania** (treść trafia surowo do `QTextBrowser.setHtml`): helpery TREŚCI `code`/`preformatted` oraz nagłówki i komórki `table` escapują wejście przez `html.escape` (`quote=False`), więc `code("a < b & c")`, listingi z przekierowaniami powłoki (`>`/`<`) i dane tabel renderują się dosłownie zamiast być interpretowane jako znaczniki. Helpery STRUKTURY `section`/`paragraph`/`unordered_list` pozostają punktami składania (HTML zaufany/zescapowany) — udokumentowane w docstringach modułu i funkcji wraz z przykładem `html.escape` po stronie konsumenta. **Zmiana zachowania**: konsument, który wcześniej wstrzykiwał HTML do `code`/`preformatted`/komórek `table`, dostanie teraz treść zescapowaną (dosłowną); do zagnieżdżania używaj helperów struktury. Publiczne sygnatury bez zmian.
 
 ## [0.5.0]
