@@ -23,6 +23,7 @@ import json
 import logging
 import os
 import sys
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -64,19 +65,48 @@ def config_dir(app_name: str) -> Path:
     return Path(platformdirs.user_config_dir(app_name, appauthor=False, roaming=True))
 
 
+def _back_up_corrupt(path: Path) -> None:
+    """Przenosi uszkodzony config na kopię ``<name>.broken-<ts>`` (bez nadpisywania).
+
+    Nie kasujemy po cichu ustawień użytkownika — przenosimy uszkodzony plik
+    ``os.replace`` (atomowo) na kopię z timestampem, więc kolejne awarie zostawiają
+    kolejne kopie zamiast się nadpisywać. Gdy nawet przeniesienie się nie uda
+    (uprawnienia), logujemy i lecimy dalej — reset do domyślnych jest ważniejszy.
+    """
+    ts = time.strftime("%Y%m%d-%H%M%S")
+    backup = path.with_name(f"{path.name}.broken-{ts}")
+    n = 1
+    while backup.exists():  # ta sama sekunda / poprzednia kopia — nie nadpisujemy
+        backup = path.with_name(f"{path.name}.broken-{ts}-{n}")
+        n += 1
+    try:
+        os.replace(path, backup)
+    except OSError as exc:
+        logger.warning("Nie udało się zachować kopii uszkodzonego %s: %s", path.name, exc)
+        return
+    logger.warning("Uszkodzony config.json — zachowano kopię %s, start z domyślnych", backup)
+
+
 def load_config(path: Path) -> dict[str, Any]:
     """Wczytuje konfigurację z pliku JSON.
 
     Returns:
-        Słownik konfiguracji; pusty słownik gdy plik nie istnieje albo jest
-        uszkodzony (brak wyjątku — to nie jest sytuacja krytyczna).
+        Słownik konfiguracji; pusty słownik gdy plik nie istnieje, jest
+        uszkodzony albo nieczytelny (brak wyjątku — to nie jest sytuacja
+        krytyczna). Przy uszkodzonym JSON-ie plik jest najpierw przenoszony na
+        kopię ``config.json.broken-<ts>`` (patrz :func:`_back_up_corrupt`), więc
+        użytkownik nie traci preferencji po cichu.
     """
     if not path.is_file():
         return {}
     try:
         with path.open(encoding="utf-8") as fh:
             data = json.load(fh)
-    except (json.JSONDecodeError, OSError):
+    except json.JSONDecodeError:
+        _back_up_corrupt(path)
+        return {}
+    except OSError:
+        # Nieczytelny plik (uprawnienia, blokada) — nie ruszamy go, po prostu reset.
         return {}
     return data if isinstance(data, dict) else {}
 
