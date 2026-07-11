@@ -48,6 +48,7 @@ wheels = [
 
 [[package]]
 name = "chodzkos-gui-kit"
+version = "0.5.1"
 source = { editable = "." }
 dependencies = [
     { name = "platformdirs" },
@@ -81,7 +82,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
     { name = "tkinterdnd2", marker = "extra == 'tk'", specifier = ">=0.4" },
 ]
-provides-extras = ["dev", "qt", "tk"]
+provides-extras = ["qt", "tk", "dev"]
 
 [[package]]
 name = "colorama"
