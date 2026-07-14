@@ -22,7 +22,7 @@ Pin do **taga**, nigdy do `main`. Podniesienie wersji = osobny commit `chore:` w
 
 ```
 palette.py        # WARSTWA 0: czyste dane — jedyne hexy w kicie (dark/light + stany)
-config.py         # platformdirs + zapis atomowy + debounce
+config.py         # platformdirs + zapis atomowy + debounce; uszkodzony config → kopia .broken-<ts>
 winutil/dwm.py    # WARSTWA 1: wspólny ctypes DWM (bez Qt, bez tk)
 qt/               # WARSTWA 2a [extras: qt]
   theme.py        #   Fusion + QPalette + generator QSS; kanoniczna sekwencja apply()
