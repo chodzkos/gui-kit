@@ -23,6 +23,7 @@ from chodzkos_gui_kit.qt.widgets.path_entry import (
     PathEntryTexts,
     PathMode,
 )
+from chodzkos_gui_kit.qt.widgets.scroll import make_scrollable
 
 __all__ = [
     "FileList",
@@ -34,6 +35,7 @@ __all__ = [
     "PathEntryTexts",
     "PathMode",
     "code",
+    "make_scrollable",
     "paragraph",
     "preformatted",
     "section",

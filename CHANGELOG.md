@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.5.2]
+### Added
+- **`qt/widgets/make_scrollable`** — owija gotowy widget w pionowy, bezramkowy `QScrollArea`: gdy zawartość (panel ustawień/„menu", zakładka, panel szczegółów) przerasta wysokość okna, pojawia się scroll pionowy, zamiast obcinać treść lub rozpychać okno. Poziomy pasek wyłączony (szerokość dopasowana do viewportu), pionowy w razie potrzeby. **Tło pozostawione motywowi** (`autoFillBackground`/`WA_StyledBackground` wyłączone na obszarze i viewportcie — paleta kitu niesie tło w obu motywach). Wyniesione z EpubForge (`make_scrollable`, ~7 zakładek); ten sam wzorzec inline miały IcoForge (przewijany panel ustawień) i MediaForge (panel szczegółów) — teraz jedno źródło. Reeksport w `qt/widgets/__init__`.
+
 ## [0.5.1]
 ### Fixed
 - **`release` — jedno źródło prawdy o wersji przez `importlib.metadata`**: `pyproject.toml` ma statyczne `version = "0.5.1"` (usunięte `dynamic`/`[tool.hatch.version]`), a `src/chodzkos_gui_kit/__init__.py` czyta `__version__ = version("chodzkos-gui-kit")` z metadanych zainstalowanego pakietu (fallback `0.0.0+unknown` przy pracy z drzewa źródeł). Koniec z literałem w kodzie i rozjazdem (tag `v0.5.0` wiózł `__version__ = "0.4.3"`). Test strażniczy `tests/test_version.py` pilnuje zgodności z metadanymi. Zastępuje mechanizm dynamic-hatch z 0.5.0.

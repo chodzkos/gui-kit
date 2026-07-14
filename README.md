@@ -8,10 +8,10 @@ Implementacja zasad z **[GUI_STANDARD.md](GUI_STANDARD.md)** — dokument mieszk
 
 ```bash
 # tor Qt (PySide6):
-uv add "chodzkos-gui-kit[qt] @ git+https://github.com/chodzkos/gui-kit@v0.5.1"
+uv add "chodzkos-gui-kit[qt] @ git+https://github.com/chodzkos/gui-kit@v0.5.2"
 
 # tor tkinter:
-uv add "chodzkos-gui-kit[tk] @ git+https://github.com/chodzkos/gui-kit@v0.5.1"
+uv add "chodzkos-gui-kit[tk] @ git+https://github.com/chodzkos/gui-kit@v0.5.2"
 ```
 
 (używaj najnowszego taga — sprawdź [Releases](https://github.com/chodzkos/gui-kit/releases))
