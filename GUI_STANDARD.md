@@ -4,11 +4,14 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-06-26 · **Wersja:** 2.12
+**Ostatnia rewizja:** 2026-07-14 · **Wersja:** 2.15
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.15 | Komponent `make_scrollable` w §7: owija gotowy widget w pionowy, bezramkowy `QScrollArea` — gdy zawartość (panel ustawień/„menu", zakładka, panel szczegółów) przerasta wysokość okna, pojawia się scroll pionowy zamiast obcinania treści lub rozpychania okna. Poziomy pasek wyłączony (szerokość = viewport), **tło pozostawione motywowi** (`autoFillBackground`/`WA_StyledBackground` wyłączone na obszarze i viewportcie — paleta niesie tło w obu motywach). Reguła trzech: wyniesione z EpubForge, ten sam wzorzec inline miały IcoForge i MediaForge (2026-07-14) |
+| 2.14 | Dwie reguły „jedno źródło prawdy" (z gui-kit v0.5.1): (a) **wersja pakietu przez `importlib.metadata`** — `pyproject.toml` ma statyczne `version`, a `__version__` czyta się z metadanych zainstalowanego pakietu (fallback `0.0.0+unknown` z drzewa źródeł); koniec z literałem w kodzie i rozjazdem tag↔`__version__`; test strażniczy pilnuje zgodności (§8 „O programie"); (b) **uszkodzony `config.json` zachowywany, nie kasowany po cichu** — przy `JSONDecodeError` plik jest atomowo przenoszony (`os.replace`) na `config.json.broken-<ts>` z `logger.warning`, dopiero potem start z domyślnych; użytkownik nie traci po cichu preferencji (§8) (2026-07-14) |
+| 2.13 | `help_html` — **granica zaufania i escaping** (treść trafia surowo do `QTextBrowser.setHtml`): helpery TREŚCI `code`/`preformatted` i komórki/nagłówki `table` escapują wejście przez `html.escape` (dosłowny render `<`/`>`/`&`), helpery STRUKTURY `section`/`paragraph`/`unordered_list` pozostają punktami składania zaufanego HTML — udokumentowane w docstringach. Konsument składający zagnieżdżony HTML używa helperów struktury, nie wstrzykuje znaczników do `code`/`table` (gui-kit v0.5.1) (2026-07-14) |
 | 2.12 | Granica belki na Win11 wyniesiona na osobny punkt §4: **przyciski ramki (min/max/close) NIE przemalowują się po zmianie motywu aktywnego okna** — Win11 ignoruje programowe `WM_NCACTIVATE`+`RedrawWindow` na oknie pozostającym aktywnym; przemalowuje dopiero przy fizycznym zdarzeniu stanu (minimalizacja/przykrycie/dialog). Sprawdzone i nieskuteczne: `RDW_ALLCHILDREN` (zostawione, nieszkodliwe), `QTimer` odroczenie. To granica, nie usterka — przyciski działają, wracają przy interakcji. Trzecia z rodziny „Win11 maluje ramkę po swojemu" (obok resize i okien w tle) (2026-06-26) |
 | 2.11 | Dwie pułapki belki/DWM wyniesione na osobne punkty §4: (a) **`RedrawWindow(RDW_FRAME\|RDW_INVALIDATE\|RDW_UPDATENOW)` PO `WM_NCACTIVATE`+`SetWindowPos`** — bez tego Win10 zostawia jasne tło pod tytułem po zmianie motywu (w sekwencji DWM tylko odnośnik); (b) **belka jaśnieje podczas aktywnego resize** — granica nie do wyeliminowania bez migotania, synchronizuj PO zakończeniu ruchu (debounce ~120ms / `WM_EXITSIZEMOVE`), nie w każdym `resizeEvent`; przy starcie w docelowym motywie nie występuje (2026-06-21) |
 | 2.10 | Repaint po zmianie motywu: `_repolish` CELOWO wymusza `setPalette(app.palette())` na `QAbstractItemView` (`QTableWidget`/`QTreeView`…) — te widoki trzymają per-widget resolve mask palety, której samo `unpolish`/`polish` NIE czyści (po dark→light zostawał stary ciemny Base). Celowane WYŁĄCZNIE na item-views; globalne `setPalette` nadpisałoby intencjonalne palety innych widgetów (2026-06-21) |
@@ -488,7 +491,11 @@ Biblioteka widgetów do reużycia w każdym projekcie. Docelowo: prywatny pakiet
 | `Tooltip` | podpowiedź reagująca na motyw | Toplevel | QToolTip: QSS z theme.py + setPalette przy każdym apply() (statyczna paleta!) |
 | `Section` | sekcja z tytułem | ttk.LabelFrame | QGroupBox |
 | `LogStreamer` | strumień subprocess → log | kolejka + after | QThread + signal |
+| `LogView` | kolorowany log read-only, 5 poziomów wg ról palety | — | QPlainTextEdit: `append_line(text,level)`, re-render historii przy `set_theme` |
 | `AboutPanel` | logo, wersja, linki | Frame | QWidget |
+| `HelpWindow` | okno pomocy z zakładkami, re-render przy motywie | — | QDialog + QTextBrowser; `tabs: list[(tytuł, html)]`, belka przez TitlebarSync |
+| `help_html` | helpery składania treści pomocy jako HTML motyw-świadomy | — | `section`/`paragraph`/`unordered_list`/`table`/`code`/`preformatted`; kolory z `palette(...)`, escaping treści (§ standard v2.13) |
+| `make_scrollable` | owija widget w pionowy, bezramkowy scroll gdy przerasta okno | — | QScrollArea: poziom wyłączony, tło z motywu (§ standard v2.15) |
 
 > Zasada: komponent piszesz RAZ, potem importujesz. Nie przepisywać między projektami.
 > Pierwsza implementacja theme.py powstaje w pdf2md (etap G1) i trafia do gui-kit.
@@ -508,6 +515,12 @@ Każda aplikacja MUSI mieć:
 - zapamiętuje: motyw, ostatnie katalogi, presety, ustawienia okna
 - **zapis przy każdej zmianie (z debounce ~1 s) lub po każdej operacji** —
   nie tylko przy zamknięciu, bo crash = utrata ustawień
+- **uszkodzony config zachowywany, nie kasowany po cichu**: przy błędzie
+  parsowania (`JSONDecodeError`) plik jest atomowo przenoszony na
+  `config.json.broken-<ts>` z `logger.warning`, dopiero potem start z
+  domyślnych — użytkownik nie traci po cichu preferencji, kopię można
+  zdiagnozować/odzyskać (nieczytelny plik / `OSError` → domyślne bez ruszania
+  pliku; standard v2.14)
 
 ### Motyw
 - tryb auto/jasny/ciemny, wybór zapamiętany
@@ -533,7 +546,10 @@ Każda aplikacja MUSI mieć:
 
 ### „O programie"
 - logo (ładowane warunkowo, placeholder gdy brak)
-- nazwa + wersja (czytana z `__version__`, nie hardcoded)
+- nazwa + wersja (czytana z `__version__`, nie hardcoded) — jedno źródło prawdy
+  przez `importlib.metadata.version(...)` z metadanych zainstalowanego pakietu
+  (statyczne `version` w `pyproject.toml`, fallback `0.0.0+unknown` z drzewa
+  źródeł), nie literał w kodzie — koniec rozjazdu tag↔`__version__` (standard v2.14)
 - link do GitHub + link do pomocy (przez `webbrowser.open`)
 - licencja
 

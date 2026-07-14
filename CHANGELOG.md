@@ -1,6 +1,10 @@
 # Changelog
 
 ## [Unreleased]
+### Docs
+- **GUI_STANDARD → v2.15** (docs-only, nadrobienie zaległości — dok. stał na 2.12): dodane wiersze standardu domykające kod już wydany — **v2.13** `help_html` granica zaufania i escaping treści (z v0.5.1), **v2.14** dwie reguły „jedno źródło prawdy": wersja pakietu przez `importlib.metadata` + zachowanie uszkodzonego `config.json` jako `.broken-<ts>` (z v0.5.1), **v2.15** `make_scrollable` (z v0.5.2). §7 uzupełniony o `LogView`, `HelpWindow`, `help_html`, `make_scrollable`; §8 o kopię uszkodzonego configu i single-source wersji w „O programie".
+- **ROADMAP** zsynchronizowany z rzeczywistością: `PathEntry`/`FileList`/`LogView`/`HelpWindow`+`help_html`/`make_scrollable` oznaczone jako wydane (z wersjami i źródłem ekstrakcji); `Section`/`AboutPanel`/`LogStreamer` pozostają kandydatami.
+- **README** — nota o zachowaniu uszkodzonego configu przy `config.py`.
 
 ## [0.5.2]
 ### Added
