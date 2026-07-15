@@ -44,6 +44,14 @@ Kandydaci (z GUI_STANDARD §7), każdy wchodzi dopiero gdy ma 2 konsumentów:
       v0.5.2, reguła trzech: EpubForge + IcoForge + MediaForge (standard v2.15).
 - [ ] `qt/widgets/Section`, `AboutPanel`, `LogStreamer` — nadal kandydaci
       (wchodzą dopiero przy drugim realnym konsumencie).
+- [ ] `qt/widgets/HelpButton` / `CornerMenu` — ikonka „ⓘ" w prawym górnym rogu paska
+      (GUI_STANDARD §6) z rozwijanym menu meta-funkcji (Pomoc/O programie). Wzorzec
+      powielany AD-HOC w trzech aplikacjach, każda inaczej: pdf2md (ⓘ → About przez
+      `QMessageBox` z przyciskiem „Pomoc"), EpubForge (ⓘ → `AboutDialog`), MediaForge
+      (ⓘ → `QMenu` z Pomoc F1 + O programie) — dojrzały do ekstrakcji (reguła trzech
+      spełniona). IcoForge jest divergentny (Pomoc w `QMenuBar`, §6-gap) i przy tej
+      ekstrakcji staje się pierwszym klientem migracyjnym — podpięcie kitowego
+      komponentu zamiast czwartej kopii ad-hoc, przy okazji powrót do zgodności z §6.
 
 ## v0.4.0 — most do mobile (opcjonalnie)
 
