@@ -1,6 +1,9 @@
 # Changelog
 
-## [Unreleased]
+## [0.5.3]
+### Added
+- **`qt/widgets/HelpWindow` — zakładki Markdown (obok HTML), z pliku lub z pamięci.** Nowe metody `add_markdown_section(title, source: str | Path)` i `add_html_section(title, html)` dokładają zakładki po konstrukcji (przeplatanie w wybranej kolejności), bez zmiany kontraktu `tabs`. Markdown renderowany natywnie przez `QTextBrowser.setMarkdown` (CommonMark + tabele/bloki kodu) — **zero nowych zależności**; `source` typu `Path` jest czytany przy dołożeniu (UTF-8), co pozwala konsumentowi na **„jeden plik prawdy"** (podaje ścieżkę do swojego `docs/*.md` zamiast duplikować treść w kodzie). Re-render na `PaletteChange` obejmuje zakładki Markdown (ta sama metoda `setMarkdown` z tą samą treścią — kolory rozwiązywane od nowa bieżącą paletą, jak przy `setHtml`). Drugi konsument: MediaForge (sekcja „Wymagania i instalacja" renderowana z `docs/INFRASTRUKTURA.md`); pdf2md może analogicznie przestać duplikować treść pomocy. Kontrakt `tabs=(tytuł, html)` i istniejący re-render HTML bez zmian.
+
 ### Docs
 - **GUI_STANDARD → v2.15** (docs-only, nadrobienie zaległości — dok. stał na 2.12): dodane wiersze standardu domykające kod już wydany — **v2.13** `help_html` granica zaufania i escaping treści (z v0.5.1), **v2.14** dwie reguły „jedno źródło prawdy": wersja pakietu przez `importlib.metadata` + zachowanie uszkodzonego `config.json` jako `.broken-<ts>` (z v0.5.1), **v2.15** `make_scrollable` (z v0.5.2). §7 uzupełniony o `LogView`, `HelpWindow`, `help_html`, `make_scrollable`; §8 o kopię uszkodzonego configu i single-source wersji w „O programie".
 - **ROADMAP** zsynchronizowany z rzeczywistością: `PathEntry`/`FileList`/`LogView`/`HelpWindow`+`help_html`/`make_scrollable` oznaczone jako wydane (z wersjami i źródłem ekstrakcji); `Section`/`AboutPanel`/`LogStreamer` pozostają kandydatami.
