@@ -37,7 +37,11 @@ wiersz w tabeli wersji standardu). Tag `vX.Y.Z` repo odpowiada stanowi standardu
 
 ## Wersjonowanie
 
-- semver; aplikacje pinują tag (`git+...@vX.Y.Z`), nigdy `main`
+- semver; wersja w `pyproject.toml` (`[project].version`), tag `vX.Y.Z` na commicie release
+- **Konwencja pinowania (konsumenci): pinuj SHA commitu z komentarzem wersji**
+  (`git+...@<SHA>  # vX.Y.Z`), **nigdy sam tag i nigdy `main`**. Tagi gitowe są mutowalne
+  (lightweight = ruchoma nazwa) — SHA jest niezmienny; komentarz niesie czytelność. Decyzja:
+  supply-chain hardening (audyt 07.2026), spójna z pdf2md/mediaforge.
 - do v1.0: minor może łamać API (odnotuj w CHANGELOG pod "Breaking")
 - od v1.0: zmiana sygnatur publicznych LUB reguł standardu (sekwencja apply,
   reguła rozjazdu) = MAJOR
