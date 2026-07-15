@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from PySide6.QtCore import QEvent
 from PySide6.QtWidgets import QTabWidget
@@ -53,7 +55,7 @@ def test_palette_change_re_sets_same_html_on_every_browser(qtbot: QtBot) -> None
     qtbot.addWidget(window)
 
     calls: list[tuple[int, str]] = []
-    for idx, (browser, _html) in enumerate(window._browsers):
+    for idx, (browser, _content, _md) in enumerate(window._browsers):
 
         def _spy(html: str, _idx: int = idx) -> None:
             calls.append((_idx, html))
@@ -72,7 +74,7 @@ def test_non_palette_change_event_does_not_re_render(qtbot: QtBot) -> None:
     qtbot.addWidget(window)
 
     called = False
-    browser, _html = window._browsers[0]
+    browser, _content, _md = window._browsers[0]
 
     def _spy(_html: str) -> None:
         nonlocal called
@@ -81,6 +83,64 @@ def test_non_palette_change_event_does_not_re_render(qtbot: QtBot) -> None:
     browser.setHtml = _spy  # type: ignore[method-assign]
     window.changeEvent(QEvent(QEvent.Type.ActivationChange))
     assert called is False
+
+
+def test_add_markdown_section_renders_headings_and_code(qtbot: QtBot) -> None:
+    """Zakładka Markdown renderuje nagłówki i bloki kodu (setMarkdown), bez surowych znaczników."""
+    window = HelpWindow()
+    qtbot.addWidget(window)
+    window.add_markdown_section("Doc", "# Nagłówek\n\nAkapit.\n\n```\nkod tutaj\n```\n")
+
+    tabs = _tab_widget(window)
+    assert tabs.count() == 1 and tabs.tabText(0) == "Doc"
+    browser, _content, markdown = window._browsers[0]
+    assert markdown is True
+    text = browser.toPlainText()
+    assert "Nagłówek" in text and "kod tutaj" in text
+    assert "#" not in text  # markdown zrenderowany, nie dosłowny (znacznik nagłówka zniknął)
+    assert "<h1" in browser.toHtml().lower()  # nagłówek jako element, nie tekst
+
+
+def test_add_markdown_section_from_file(qtbot: QtBot, tmp_path: Path) -> None:
+    """``source: Path`` czyta plik przy dołożeniu (jeden plik prawdy — treść z docs/*.md)."""
+    md = tmp_path / "doc.md"
+    md.write_text("# Tytuł pliku\n\ntreść z pliku\n", encoding="utf-8")
+    window = HelpWindow()
+    qtbot.addWidget(window)
+    window.add_markdown_section("Plik", md)
+
+    browser, content, markdown = window._browsers[0]
+    assert markdown is True
+    assert "Tytuł pliku" in browser.toPlainText()
+    # Surowy markdown zachowany do re-renderu na zmianę motywu.
+    assert content == "# Tytuł pliku\n\ntreść z pliku\n"
+
+
+def test_markdown_palette_change_re_renders_via_set_markdown(qtbot: QtBot) -> None:
+    """PaletteChange re-renderuje zakładkę Markdown przez setMarkdown (NIE setHtml)."""
+    window = HelpWindow()
+    qtbot.addWidget(window)
+    window.add_markdown_section("Doc", "# H\n")
+    browser, _content, _md = window._browsers[0]
+
+    calls: list[str] = []
+    browser.setMarkdown = lambda md: calls.append(md)  # type: ignore[method-assign]
+    browser.setHtml = lambda html: calls.append(f"HTML:{html}")  # type: ignore[method-assign]
+
+    window.changeEvent(QEvent(QEvent.Type.PaletteChange))
+    assert calls == ["# H\n"]  # tą samą metodą (setMarkdown), tą samą treścią
+
+
+def test_sections_compose_in_order(qtbot: QtBot) -> None:
+    """Zakładki z ``tabs`` + dołożone HTML/Markdown zachowują kolejność dołożenia."""
+    window = HelpWindow(tabs=[("A", "<p>a</p>")])
+    qtbot.addWidget(window)
+    window.add_markdown_section("B", "# b")
+    window.add_html_section("C", "<p>c</p>")
+
+    tabs = _tab_widget(window)
+    assert [tabs.tabText(i) for i in range(tabs.count())] == ["A", "B", "C"]
+    assert [markdown for _b, _c, markdown in window._browsers] == [False, True, False]
 
 
 def test_helpers_produce_expected_html() -> None:
