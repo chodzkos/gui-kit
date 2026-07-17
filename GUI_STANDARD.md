@@ -4,11 +4,12 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-07-14 · **Wersja:** 2.15
+**Ostatnia rewizja:** 2026-07-17 · **Wersja:** 2.16
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.16 | Komponent `AboutPanel` (§7) + moduł `release` (warstwa 0) domykają §8 „O programie z wersją i linkami / sprawdzanie aktualizacji" (gui-kit v0.5.4). **`release`** (czysty Python, zero Qt): `installed_version(dist, fallback)` (jedno źródło prawdy — metadane pakietu), `latest_github_release(owner, repo)`, `is_update_available(installed, latest)` (funkcja czysta) + skrót `check_github_update`; porównanie wersji numeryczne krotką (bez zależności `packaging`). **`AboutPanel`** (QWidget): logo (wariant motywu przeładowywany na `PaletteChange`), nazwa, wersja, opis, linki, licencja; sprawdzanie aktualizacji **asynchroniczne** (wątek), wstrzykiwany `check_update` (kit nie zna nazwy pakietu/repo), i18n przez `AboutTexts`; panel sam sprząta wątek przy `Close` okna-rodzica. Reguła trzech: ad-hoc About w pdf2md/EpubForge/MediaForge; ekstrakcja z IcoForge (2026-07-17) |
 | 2.15 | Komponent `make_scrollable` w §7: owija gotowy widget w pionowy, bezramkowy `QScrollArea` — gdy zawartość (panel ustawień/„menu", zakładka, panel szczegółów) przerasta wysokość okna, pojawia się scroll pionowy zamiast obcinania treści lub rozpychania okna. Poziomy pasek wyłączony (szerokość = viewport), **tło pozostawione motywowi** (`autoFillBackground`/`WA_StyledBackground` wyłączone na obszarze i viewportcie — paleta niesie tło w obu motywach). Reguła trzech: wyniesione z EpubForge, ten sam wzorzec inline miały IcoForge i MediaForge (2026-07-14) |
 | 2.14 | Dwie reguły „jedno źródło prawdy" (z gui-kit v0.5.1): (a) **wersja pakietu przez `importlib.metadata`** — `pyproject.toml` ma statyczne `version`, a `__version__` czyta się z metadanych zainstalowanego pakietu (fallback `0.0.0+unknown` z drzewa źródeł); koniec z literałem w kodzie i rozjazdem tag↔`__version__`; test strażniczy pilnuje zgodności (§8 „O programie"); (b) **uszkodzony `config.json` zachowywany, nie kasowany po cichu** — przy `JSONDecodeError` plik jest atomowo przenoszony (`os.replace`) na `config.json.broken-<ts>` z `logger.warning`, dopiero potem start z domyślnych; użytkownik nie traci po cichu preferencji (§8) (2026-07-14) |
 | 2.13 | `help_html` — **granica zaufania i escaping** (treść trafia surowo do `QTextBrowser.setHtml`): helpery TREŚCI `code`/`preformatted` i komórki/nagłówki `table` escapują wejście przez `html.escape` (dosłowny render `<`/`>`/`&`), helpery STRUKTURY `section`/`paragraph`/`unordered_list` pozostają punktami składania zaufanego HTML — udokumentowane w docstringach. Konsument składający zagnieżdżony HTML używa helperów struktury, nie wstrzykuje znaczników do `code`/`table` (gui-kit v0.5.1) (2026-07-14) |
@@ -492,7 +493,7 @@ Biblioteka widgetów do reużycia w każdym projekcie. Docelowo: prywatny pakiet
 | `Section` | sekcja z tytułem | ttk.LabelFrame | QGroupBox |
 | `LogStreamer` | strumień subprocess → log | kolejka + after | QThread + signal |
 | `LogView` | kolorowany log read-only, 5 poziomów wg ról palety | — | QPlainTextEdit: `append_line(text,level)`, re-render historii przy `set_theme` |
-| `AboutPanel` | logo, wersja, linki | Frame | QWidget |
+| `AboutPanel` | logo, wersja, linki, async update-check | Frame | QWidget: logo (wariant motywu), nazwa/wersja/opis/linki/licencja, `check_update` w tle, i18n `AboutTexts`; wersja/aktualizacja przez moduł `release` (v0.5.4) |
 | `HelpWindow` | okno pomocy z zakładkami, re-render przy motywie | — | QDialog + QTextBrowser; `tabs: list[(tytuł, html)]`, belka przez TitlebarSync |
 | `help_html` | helpery składania treści pomocy jako HTML motyw-świadomy | — | `section`/`paragraph`/`unordered_list`/`table`/`code`/`preformatted`; kolory z `palette(...)`, escaping treści (§ standard v2.13) |
 | `make_scrollable` | owija widget w pionowy, bezramkowy scroll gdy przerasta okno | — | QScrollArea: poziom wyłączony, tło z motywu (§ standard v2.15) |
