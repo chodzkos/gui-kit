@@ -42,7 +42,12 @@ Kandydaci (z GUI_STANDARD §7), każdy wchodzi dopiero gdy ma 2 konsumentów:
       w helperach treści od v0.5.1 (standard v2.13).
 - [x] `qt/widgets/make_scrollable` (owija widget w pionowy bezramkowy scroll) —
       v0.5.2, reguła trzech: EpubForge + IcoForge + MediaForge (standard v2.15).
-- [ ] `qt/widgets/Section`, `AboutPanel`, `LogStreamer` — nadal kandydaci
+- [x] `qt/widgets/AboutPanel` (logo, wersja, linki, async update-check) + moduł
+      `release` (warstwa 0: wersja z metadanych + sprawdzanie GitHub Releases) —
+      v0.6.0, ekstrakcja z IcoForge; reguła trzech: ad-hoc About w pdf2md/
+      EpubForge/MediaForge. `check_update` wstrzykiwany (kit bez nazwy pakietu/repo),
+      i18n przez `AboutTexts`.
+- [ ] `qt/widgets/Section`, `LogStreamer` — nadal kandydaci
       (wchodzą dopiero przy drugim realnym konsumencie).
 - [ ] `qt/widgets/HelpButton` / `CornerMenu` — ikonka „ⓘ" w prawym górnym rogu paska
       (GUI_STANDARD §6) z rozwijanym menu meta-funkcji (Pomoc/O programie). Wzorzec
