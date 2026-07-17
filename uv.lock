@@ -48,7 +48,7 @@ wheels = [
 
 [[package]]
 name = "chodzkos-gui-kit"
-version = "0.6.0"
+version = "0.5.4"
 source = { editable = "." }
 dependencies = [
     { name = "platformdirs" },

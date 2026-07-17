@@ -44,7 +44,7 @@ Kandydaci (z GUI_STANDARD §7), każdy wchodzi dopiero gdy ma 2 konsumentów:
       v0.5.2, reguła trzech: EpubForge + IcoForge + MediaForge (standard v2.15).
 - [x] `qt/widgets/AboutPanel` (logo, wersja, linki, async update-check) + moduł
       `release` (warstwa 0: wersja z metadanych + sprawdzanie GitHub Releases) —
-      v0.6.0, ekstrakcja z IcoForge; reguła trzech: ad-hoc About w pdf2md/
+      v0.5.4, ekstrakcja z IcoForge; reguła trzech: ad-hoc About w pdf2md/
       EpubForge/MediaForge. `check_update` wstrzykiwany (kit bez nazwy pakietu/repo),
       i18n przez `AboutTexts`.
 - [ ] `qt/widgets/Section`, `LogStreamer` — nadal kandydaci

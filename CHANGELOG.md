@@ -1,13 +1,13 @@
 # Changelog
 
-## [0.6.0]
+## [0.5.4]
 ### Added
 - **`release.py` — introspekcja wersji + sprawdzanie aktualizacji GitHub (warstwa 0, zero Qt).** Ekstrakcja `version_check` z IcoForge, odsprzężona parametrami: `installed_version(dist_name, *, fallback="0.0.0")` (jedno źródło prawdy — metadane pakietu, `fallback` po stronie konsumenta np. wygenerowany `_version.py` w buildzie frozen), `latest_github_release(owner, repo, *, timeout=5.0)`, `is_update_available(installed, latest) -> (bool, str)` (**funkcja czysta**, bez sieci — testowalna), skrót `check_github_update(dist_name, owner, repo)` (woła sieć — do wątku) i `github_releases_url(owner, repo)`. Porównanie wersji jest **bez zależności** (`packaging` NIE wchodzi do kitu): tagi (`1.3.0`, `v2.0`) porównywane numerycznie krotką (`1.10 > 1.9`), człony pre-release ucinane. Testowalne bez PySide6.
 - **`qt/widgets/AboutPanel` — panel „O programie" (logo, wersja, linki).** Ekstrakcja okna „O programie" z IcoForge; odsprzężony: treść to parametry (`app_name`/`version`/`description`/`links`/`license_name`/`extra_note`), i18n przez `AboutTexts` (frozen dataclass, ang. domyślne; szablony `{version}`/`{name}`), a sprawdzanie aktualizacji to **wstrzykiwany `check_update: () -> (bool, str)`** (kit nie zna nazwy pakietu ani repo — podaje je konsument, np. przez `release.check_github_update`). Sprawdzanie **asynchroniczne** (osobny wątek — GUI nie blokuje na sieci); panel sam zarządza cyklem życia wątku (start przy pokazaniu, `quit`/`wait` przy `Close` okna-rodzica — osadzenie w `QDialog` bez ręcznego sprzątania). Logo motyw-świadome: `logo` jako `Callable[[], QPixmap | None]` przeładowywane przy `PaletteChange` (statyczny `QPixmap` bez zmian). Etykiety/linki dziedziczą kolory z palety. **Reguła trzech**: ad-hoc About w pdf2md (`QMessageBox`), EpubForge (`AboutDialog`), MediaForge (`QMenu`→About); IcoForge = pierwszy klient migracyjny. Reeksport w `qt/widgets/__init__`.
 
 ### Docs
 - **GUI_STANDARD → v2.16**: `AboutPanel` w §7 i moduł `release` domykają §8 „O programie z wersją i linkami / sprawdzanie aktualizacji".
-- **ROADMAP** — `AboutPanel` oznaczony jako wydany (v0.6.0, reguła trzech spełniona).
+- **ROADMAP** — `AboutPanel` oznaczony jako wydany (v0.5.4, reguła trzech spełniona).
 
 ## [0.5.3]
 ### Added
