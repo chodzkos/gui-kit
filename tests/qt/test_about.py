@@ -55,11 +55,12 @@ def test_update_available_sets_link(qtbot: QtBot) -> None:
         texts=AboutTexts(update_available="Nowa: {version}"),
     )
     qtbot.addWidget(panel)
-    panel.show()
-    with qtbot.waitSignal(panel._worker.result, timeout=2000):
-        pass
+    # start_update_check jest idempotentny — wołamy wprost, by nie zależeć od timingu
+    # showEvent; waitUntil pollinguje etykietę (wynik wątku może przyjść zanim
+    # zaczęlibyśmy nasłuch sygnału — stąd nie waitSignal).
+    panel.start_update_check()
+    qtbot.waitUntil(lambda: "Nowa: 2.0.0" in " | ".join(_labels(panel)), timeout=3000)
     joined = " | ".join(_labels(panel))
-    assert "Nowa: 2.0.0" in joined
     assert 'href="https://example.test/releases"' in joined
     panel.stop_update_check()
 
@@ -73,10 +74,8 @@ def test_up_to_date_message(qtbot: QtBot) -> None:
         texts=AboutTexts(up_to_date="Najnowsza."),
     )
     qtbot.addWidget(panel)
-    panel.show()
-    with qtbot.waitSignal(panel._worker.result, timeout=2000):
-        pass
-    assert "Najnowsza." in " | ".join(_labels(panel))
+    panel.start_update_check()
+    qtbot.waitUntil(lambda: "Najnowsza." in " | ".join(_labels(panel)), timeout=3000)
     panel.stop_update_check()
 
 
