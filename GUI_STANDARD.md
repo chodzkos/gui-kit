@@ -4,11 +4,12 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-06-26 · **Wersja:** 2.12
+**Ostatnia rewizja:** 2026-07-21 · **Wersja:** 2.13
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.13 | Ciężki moduł Qt może wejść do artefaktu, gdy jest rzeczywistą funkcją produktu: build musi być warunkowy/jawny, koszt rozmiaru i startu udokumentowany, a gotowy artefakt przetestowany wraz z procesami pomocniczymi i zasobami; pozostałe nieużywane moduły nadal wykluczamy (2026-07-21) |
 | 2.12 | Granica belki na Win11 wyniesiona na osobny punkt §4: **przyciski ramki (min/max/close) NIE przemalowują się po zmianie motywu aktywnego okna** — Win11 ignoruje programowe `WM_NCACTIVATE`+`RedrawWindow` na oknie pozostającym aktywnym; przemalowuje dopiero przy fizycznym zdarzeniu stanu (minimalizacja/przykrycie/dialog). Sprawdzone i nieskuteczne: `RDW_ALLCHILDREN` (zostawione, nieszkodliwe), `QTimer` odroczenie. To granica, nie usterka — przyciski działają, wracają przy interakcji. Trzecia z rodziny „Win11 maluje ramkę po swojemu" (obok resize i okien w tle) (2026-06-26) |
 | 2.11 | Dwie pułapki belki/DWM wyniesione na osobne punkty §4: (a) **`RedrawWindow(RDW_FRAME\|RDW_INVALIDATE\|RDW_UPDATENOW)` PO `WM_NCACTIVATE`+`SetWindowPos`** — bez tego Win10 zostawia jasne tło pod tytułem po zmianie motywu (w sekwencji DWM tylko odnośnik); (b) **belka jaśnieje podczas aktywnego resize** — granica nie do wyeliminowania bez migotania, synchronizuj PO zakończeniu ruchu (debounce ~120ms / `WM_EXITSIZEMOVE`), nie w każdym `resizeEvent`; przy starcie w docelowym motywie nie występuje (2026-06-21) |
 | 2.10 | Repaint po zmianie motywu: `_repolish` CELOWO wymusza `setPalette(app.palette())` na `QAbstractItemView` (`QTableWidget`/`QTreeView`…) — te widoki trzymają per-widget resolve mask palety, której samo `unpolish`/`polish` NIE czyści (po dark→light zostawał stary ciemny Base). Celowane WYŁĄCZNIE na item-views; globalne `setPalette` nadpisałoby intencjonalne palety innych widgetów (2026-06-21) |
@@ -558,6 +559,11 @@ Każda aplikacja MUSI mieć:
 - **`upx=False` dla Qt** — UPX uszkadza DLL-e Qt; wyłącz w `.spec`
 - tkinter: hook `tkdnd` dla tkinterdnd2 w `.spec`
 - Qt: PySide6 plugins (platforms, styles) zwykle wykrywane automatycznie, ale sprawdź rozmiar
+- ciężki moduł Qt (np. WebEngine) wolno dołączyć, gdy jest funkcją produktu, a nie
+  przypadkową zależnością. Wymaga jawnego/warunkowego wariantu builda,
+  udokumentowanego kosztu rozmiaru i startu oraz testu gotowego artefaktu (w tym
+  procesów pomocniczych, pluginów, locales i zasobów). Inne nieużywane ciężkie
+  moduły nadal wykluczaj we wspólnej konfiguracji speców
 - DLL conflict (python3xx.dll) — izolacja przy wywołaniach subprocess
 - assets (logo, ikona) w `datas`, ładowane przez `sys._MEIPASS` w bundlu
 
