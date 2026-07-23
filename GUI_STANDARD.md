@@ -4,11 +4,12 @@
 > Punkt odniesienia dla wszystkich aplikacji i dla Claude Code.
 > Dwa tory technologiczne, wspólne zasady wyglądu i zachowania.
 
-**Ostatnia rewizja:** 2026-07-17 · **Wersja:** 2.16
+**Ostatnia rewizja:** 2026-07-21 · **Wersja:** 2.17
 *(wersje 2.0–2.7 powstały w jednej sesji przeglądowej 2026-06-14; przyszłe edycje datować per zmiana)*
 
 | Wersja | Zmiany |
 |---|---|
+| 2.17 | Ciężki moduł Qt może wejść do artefaktu, gdy jest rzeczywistą funkcją produktu: build musi być warunkowy/jawny, koszt rozmiaru i startu udokumentowany, a gotowy artefakt przetestowany wraz z procesami pomocniczymi i zasobami; pozostałe nieużywane moduły nadal wykluczamy (2026-07-21) |
 | 2.16 | Komponent `AboutPanel` (§7) + moduł `release` (warstwa 0) domykają §8 „O programie z wersją i linkami / sprawdzanie aktualizacji" (gui-kit v0.5.4). **`release`** (czysty Python, zero Qt): `installed_version(dist, fallback)` (jedno źródło prawdy — metadane pakietu), `latest_github_release(owner, repo)`, `is_update_available(installed, latest)` (funkcja czysta) + skrót `check_github_update`; porównanie wersji numeryczne krotką (bez zależności `packaging`). **`AboutPanel`** (QWidget): logo (wariant motywu przeładowywany na `PaletteChange`), nazwa, wersja, opis, linki, licencja; sprawdzanie aktualizacji **asynchroniczne** (wątek), wstrzykiwany `check_update` (kit nie zna nazwy pakietu/repo), i18n przez `AboutTexts`; panel sam sprząta wątek przy `Close` okna-rodzica. Reguła trzech: ad-hoc About w pdf2md/EpubForge/MediaForge; ekstrakcja z IcoForge (2026-07-17) |
 | 2.15 | Komponent `make_scrollable` w §7: owija gotowy widget w pionowy, bezramkowy `QScrollArea` — gdy zawartość (panel ustawień/„menu", zakładka, panel szczegółów) przerasta wysokość okna, pojawia się scroll pionowy zamiast obcinania treści lub rozpychania okna. Poziomy pasek wyłączony (szerokość = viewport), **tło pozostawione motywowi** (`autoFillBackground`/`WA_StyledBackground` wyłączone na obszarze i viewportcie — paleta niesie tło w obu motywach). Reguła trzech: wyniesione z EpubForge, ten sam wzorzec inline miały IcoForge i MediaForge (2026-07-14) |
 | 2.14 | Dwie reguły „jedno źródło prawdy" (z gui-kit v0.5.1): (a) **wersja pakietu przez `importlib.metadata`** — `pyproject.toml` ma statyczne `version`, a `__version__` czyta się z metadanych zainstalowanego pakietu (fallback `0.0.0+unknown` z drzewa źródeł); koniec z literałem w kodzie i rozjazdem tag↔`__version__`; test strażniczy pilnuje zgodności (§8 „O programie"); (b) **uszkodzony `config.json` zachowywany, nie kasowany po cichu** — przy `JSONDecodeError` plik jest atomowo przenoszony (`os.replace`) na `config.json.broken-<ts>` z `logger.warning`, dopiero potem start z domyślnych; użytkownik nie traci po cichu preferencji (§8) (2026-07-14) |
@@ -575,6 +576,11 @@ Każda aplikacja MUSI mieć:
 - **`upx=False` dla Qt** — UPX uszkadza DLL-e Qt; wyłącz w `.spec`
 - tkinter: hook `tkdnd` dla tkinterdnd2 w `.spec`
 - Qt: PySide6 plugins (platforms, styles) zwykle wykrywane automatycznie, ale sprawdź rozmiar
+- ciężki moduł Qt (np. WebEngine) wolno dołączyć, gdy jest funkcją produktu, a nie
+  przypadkową zależnością. Wymaga jawnego/warunkowego wariantu builda,
+  udokumentowanego kosztu rozmiaru i startu oraz testu gotowego artefaktu (w tym
+  procesów pomocniczych, pluginów, locales i zasobów). Inne nieużywane ciężkie
+  moduły nadal wykluczaj we wspólnej konfiguracji speców
 - DLL conflict (python3xx.dll) — izolacja przy wywołaniach subprocess
 - assets (logo, ikona) w `datas`, ładowane przez `sys._MEIPASS` w bundlu
 
