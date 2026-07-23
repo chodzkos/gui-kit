@@ -16,8 +16,8 @@ jobs:
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
       - name: Sync (qt + tk + dev)
         run: uv sync --extra qt --extra tk --extra dev
       - name: Lint
@@ -27,16 +27,73 @@ jobs:
       - name: Install Qt offscreen libs + Tk
         # python3-tk dostarcza _tkinter do systemowego Pythona (Ubuntu trzyma go
         # w osobnej paczce) — testy toru tk robią `import tkinter` (bez display).
-        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 python3-tk
-      - name: Tests (bez markera windows)
-        run: uv run pytest
+        # Hostowane runnery bywają czerwone na `apt-get update`, bo wstępnie
+        # skonfigurowane repo third-party (packages.microsoft.com / azure-cli) serwuje
+        # wadliwy InRelease. Nie potrzebujemy go — usuwamy jego źródła, zostają
+        # repozytoria Ubuntu z libegl1/libgl1/python3-tk. To flake infry, nie nasz błąd.
+        run: |
+          sudo grep -rlZ packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null | sudo xargs -0 -r rm -f
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 python3-tk
+      - name: Tests (bez markera windows) + pokrycie
+        # Raport pokrycia w logu (term-missing pokazuje niepokryte linie, m.in.
+        # fallbacki/gałęzie dialogów). Próg 80% jako floor: zmierzone na tym jobie
+        # 86%, margines pochłania linie strukturalnie niepokrywalne na Linuksie
+        # (ctypes Windows w dwm.py + żywy root/Windows w torze tk — mierzą je joby
+        # windows-dwm/windows-tag). Podnieść po dołożeniu testów gałęzi natywnej dialogów.
+        run: uv run pytest --cov=src/chodzkos_gui_kit --cov-report=term-missing --cov-fail-under=80
+      - name: Audit zależności (miękkie ostrzeżenie, nie blokuje CI)
+        # pip-audit sprawdza zsynchronizowane środowisko (runtime + extras) pod
+        # kątem znanych podatności (OSV/PyPI). continue-on-error = tylko ostrzeżenie.
+        continue-on-error: true
+        run: uv run --extra qt --extra tk --extra dev --with pip-audit pip-audit
 
-  # Testy DWM/Windows tylko przy tagu — oszczędzanie minut (GUI_STANDARD §9)
+  # Bramka pakowania: wheel MUSI wozić ikony SVG + LICENSE-icons + py.typed,
+  # inaczej get_icon pada w zainstalowanej paczce (pyproject.toml to ostrzega).
+  build:
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      - name: Build sdist + wheel
+        run: uv build
+      - name: Verify wheel bundles assets (icons SVG, LICENSE-icons, py.typed)
+        run: |
+          python3 - <<'PY'
+          import glob, zipfile
+          whl = glob.glob("dist/*.whl")
+          assert whl, "brak wheela w dist/"
+          names = zipfile.ZipFile(whl[0]).namelist()
+          assert any(n.startswith("chodzkos_gui_kit/assets/icons/") and n.endswith(".svg") for n in names), "wheel bez ikon SVG (assets/icons/*.svg)"
+          assert "chodzkos_gui_kit/assets/icons/LICENSE-icons" in names, "wheel bez LICENSE-icons"
+          assert "chodzkos_gui_kit/py.typed" in names, "wheel bez py.typed"
+          print("OK: wheel zawiera ikony SVG, LICENSE-icons i py.typed")
+          PY
+      - name: Install Qt offscreen libs
+        # Usuwamy wadliwe repo third-party przed update — patrz komentarz w jobie test.
+        run: |
+          sudo grep -rlZ packages.microsoft.com /etc/apt/sources.list.d/ 2>/dev/null | sudo xargs -0 -r rm -f
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1
+      - name: Smoke-test built wheel in fresh venv (extra qt)
+        # Instalacja zbudowanego wheela (nie edytowalnego repo) do czystego venv
+        # + import toru Qt — łapie brak assetów/zależności w realnej paczce.
+        run: |
+          uv venv /tmp/smoke
+          uv pip install --python /tmp/smoke "$(ls dist/*.whl)[qt]"
+          /tmp/smoke/bin/python -c "import chodzkos_gui_kit; from chodzkos_gui_kit.qt import icons"
+
+  # Pełny przebieg Windows (wszystkie testy) przy tagu v*. Na zwykłym PR feedback
+  # dla kodu DWM daje osobny workflow `windows-dwm.yml` — odpala się tylko przy
+  # zmianie ścieżek DWM (dwm/titlebar/theme), więc nie płacimy minut Windows na
+  # każdym PR. Tu zostaje pełny run przy wydaniu (GUI_STANDARD §9).
   windows-tag:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
       - run: uv sync --extra qt --extra tk --extra dev
       - run: uv run pytest -m "windows or not windows"

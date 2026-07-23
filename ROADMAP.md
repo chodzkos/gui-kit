@@ -23,7 +23,7 @@ dwóch realnych konsumentów nie wchodzi wcale.
 - [x] źródło ekstrakcji: kod tkinter EpubForge sprzed migracji (commit `f62266b^`, przed PR #22)
 - [ ] pierwsza konsumpcja: najbliższe małe narzędzie wg tabeli decyzyjnej §2
 
-## v0.3.0 — widgety wspólne (TYLKO na żądanie drugiej aplikacji)
+## v0.3.0+ — widgety wspólne (TYLKO na żądanie drugiej aplikacji)
 
 Kandydaci (z GUI_STANDARD §7), każdy wchodzi dopiero gdy ma 2 konsumentów:
 - [x] `qt/icons.py` (`IconProvider` / `get_icon`) — PIERWSZY w kolejce: zależy
@@ -31,10 +31,32 @@ Kandydaci (z GUI_STANDARD §7), każdy wchodzi dopiero gdy ma 2 konsumentów:
       naturalnie domyka tor motywu. Źródło: IcoForge (kod scalony do `main`,
       `gui/icons.py`). Wniósł `assets/icons/` (21 Lucide ISC) + LICENSE-icons.
       Konsumenci: IcoForge (źródło) + EpubForge/pdf2md (toolbary, po wydaniu).
-- [ ] `qt/widgets/PathEntry` (pole + „…")
-- [ ] `qt/widgets/FileList` (toolbar + licznik + D&D)
-- [ ] `qt/widgets/Section`, `AboutPanel`, `LogStreamer`
-- [ ] prawdopodobni konsumenci: EpubForge + IcoForge (lifting) lub pdf2md (etap G1)
+- [x] `qt/widgets/PathEntry` (pole + „…") — v0.4.0, wyniesiony z EpubForge;
+      odsprzężony (`DialogConfig`, i18n przez `PathEntryTexts`).
+- [x] `qt/widgets/FileList` (toolbar + licznik + D&D) — v0.4.1, z EpubForge;
+      i18n przez `FileListTexts`, licznik przez wstrzykiwany `count_label`.
+- [x] `qt/widgets/LogView` (kolorowany log read-only, 5 poziomów) — v0.4.2,
+      łączy wzorce EpubForge + pdf2md; re-render historii przy zmianie motywu.
+- [x] `qt/widgets/HelpWindow` + `help_html` (okno pomocy z zakładkami + helpery
+      składania treści) — v0.5.0, wyniesione z pdf2md; escaping granicy zaufania
+      w helperach treści od v0.5.1 (standard v2.13).
+- [x] `qt/widgets/make_scrollable` (owija widget w pionowy bezramkowy scroll) —
+      v0.5.2, reguła trzech: EpubForge + IcoForge + MediaForge (standard v2.15).
+- [x] `qt/widgets/AboutPanel` (logo, wersja, linki, async update-check) + moduł
+      `release` (warstwa 0: wersja z metadanych + sprawdzanie GitHub Releases) —
+      v0.5.4, ekstrakcja z IcoForge; reguła trzech: ad-hoc About w pdf2md/
+      EpubForge/MediaForge. `check_update` wstrzykiwany (kit bez nazwy pakietu/repo),
+      i18n przez `AboutTexts`.
+- [ ] `qt/widgets/Section`, `LogStreamer` — nadal kandydaci
+      (wchodzą dopiero przy drugim realnym konsumencie).
+- [ ] `qt/widgets/HelpButton` / `CornerMenu` — ikonka „ⓘ" w prawym górnym rogu paska
+      (GUI_STANDARD §6) z rozwijanym menu meta-funkcji (Pomoc/O programie). Wzorzec
+      powielany AD-HOC w trzech aplikacjach, każda inaczej: pdf2md (ⓘ → About przez
+      `QMessageBox` z przyciskiem „Pomoc"), EpubForge (ⓘ → `AboutDialog`), MediaForge
+      (ⓘ → `QMenu` z Pomoc F1 + O programie) — dojrzały do ekstrakcji (reguła trzech
+      spełniona). IcoForge jest divergentny (Pomoc w `QMenuBar`, §6-gap) i przy tej
+      ekstrakcji staje się pierwszym klientem migracyjnym — podpięcie kitowego
+      komponentu zamiast czwartej kopii ad-hoc, przy okazji powrót do zgodności z §6.
 
 ## v0.4.0 — most do mobile (opcjonalnie)
 

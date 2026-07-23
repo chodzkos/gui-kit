@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
 from pathlib import Path
+
+import pytest
 
 from chodzkos_gui_kit import config as config_mod
 from chodzkos_gui_kit.config import Config, config_dir, load_config, save_config
@@ -21,11 +25,32 @@ def test_load_missing_returns_empty(tmp_path: Path) -> None:
     assert load_config(tmp_path / "nie_ma.json") == {}
 
 
-def test_load_corrupt_returns_empty(tmp_path: Path) -> None:
-    """Uszkodzony JSON → pusty słownik (nie wyjątek)."""
+def test_load_corrupt_backs_up_and_warns(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Uszkodzony JSON → {} + kopia ``config.json.broken-*`` obok + warning (nie po cichu)."""
     bad = tmp_path / "config.json"
     bad.write_text("{ to nie json", encoding="utf-8")
+
+    with caplog.at_level(logging.WARNING, logger="chodzkos_gui_kit.config"):
+        assert load_config(bad) == {}
+
+    # Uszkodzony plik przeniesiony (nie kasowany po cichu), oryginał już nie istnieje.
+    assert not bad.exists()
+    backups = list(tmp_path.glob("config.json.broken-*"))
+    assert len(backups) == 1
+    assert backups[0].read_text(encoding="utf-8") == "{ to nie json"
+    assert any("start z domyślnych" in rec.message for rec in caplog.records)
+
+
+def test_load_corrupt_keeps_previous_backup(tmp_path: Path) -> None:
+    """Kolejna awaria nie nadpisuje wcześniejszej kopii (współistnieją)."""
+    bad = tmp_path / "config.json"
+    # Pierwsza kopia z tym samym „second-timestamp" już leży obok.
+    (tmp_path / f"config.json.broken-{time.strftime('%Y%m%d-%H%M%S')}").write_text("stara")
+    bad.write_text("{ znowu zle", encoding="utf-8")
     assert load_config(bad) == {}
+    assert len(list(tmp_path.glob("config.json.broken-*"))) == 2
 
 
 def test_save_is_atomic_and_roundtrips(tmp_path: Path) -> None:

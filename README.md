@@ -8,10 +8,10 @@ Implementacja zasad z **[GUI_STANDARD.md](GUI_STANDARD.md)** — dokument mieszk
 
 ```bash
 # tor Qt (PySide6):
-uv add "chodzkos-gui-kit[qt] @ git+https://github.com/chodzkos/gui-kit@v0.1.1"
+uv add "chodzkos-gui-kit[qt] @ git+https://github.com/chodzkos/gui-kit@v0.5.2"
 
 # tor tkinter:
-uv add "chodzkos-gui-kit[tk] @ git+https://github.com/chodzkos/gui-kit@v0.2.0"
+uv add "chodzkos-gui-kit[tk] @ git+https://github.com/chodzkos/gui-kit@v0.5.2"
 ```
 
 (używaj najnowszego taga — sprawdź [Releases](https://github.com/chodzkos/gui-kit/releases))
@@ -22,7 +22,7 @@ Pin do **taga**, nigdy do `main`. Podniesienie wersji = osobny commit `chore:` w
 
 ```
 palette.py        # WARSTWA 0: czyste dane — jedyne hexy w kicie (dark/light + stany)
-config.py         # platformdirs + zapis atomowy + debounce
+config.py         # platformdirs + zapis atomowy + debounce; uszkodzony config → kopia .broken-<ts>
 winutil/dwm.py    # WARSTWA 1: wspólny ctypes DWM (bez Qt, bez tk)
 qt/               # WARSTWA 2a [extras: qt]
   theme.py        #   Fusion + QPalette + generator QSS; kanoniczna sekwencja apply()

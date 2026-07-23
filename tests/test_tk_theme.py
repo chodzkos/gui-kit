@@ -6,6 +6,7 @@ jak ``windows``). PySide6 NIE jest tu wymagany.
 
 from __future__ import annotations
 
+import ctypes
 from types import SimpleNamespace
 
 import pytest
@@ -78,6 +79,22 @@ def test_sync_titlebar_maps_mode(monkeypatch: pytest.MonkeyPatch) -> None:
     titlebar.sync_titlebar(dummy, "dark")  # type: ignore[arg-type]
     titlebar.sync_titlebar(dummy, "light")  # type: ignore[arg-type]
     assert calls == [True, False]
+
+
+def test_configure_getparent_uses_pointer_sized_handle() -> None:
+    """GetParent.argtypes/restype = typ WSKAŹNIKOWY — łapie truncację 64-bit HWND (v2.9).
+
+    Wstrzykujemy ``c_void_p`` (na Windows ``wintypes.HWND`` jest mu równe), więc test
+    działa bez Windows i bez ``ctypes.wintypes`` — tak jak dwm._configure_signatures.
+    """
+    user32 = SimpleNamespace(GetParent=SimpleNamespace())
+
+    titlebar._configure_getparent(user32, ctypes.c_void_p)
+
+    # Argument (winfo_id) marshalowany jako wskaźnik — bez tego 64-bit HWND się utnie.
+    assert user32.GetParent.argtypes == (ctypes.c_void_p,)
+    # restype wskaźnikowy — bez tego bit 31 uchwytu wracałby jako liczba ujemna.
+    assert user32.GetParent.restype is ctypes.c_void_p
 
 
 def test_set_titlebar_dark_noop_off_windows(monkeypatch: pytest.MonkeyPatch) -> None:

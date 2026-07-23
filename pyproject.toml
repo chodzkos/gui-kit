@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "chodzkos-gui-kit"
-version = "0.5.0"
+version = "0.5.4"
 description = "Wspólne komponenty GUI (tor Qt i tkinter) wg GUI_STANDARD.md — paleta marki, motywy, titlebar DWM, dialogi."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -20,6 +20,7 @@ tk = ["darkdetect>=0.8", "tkinterdnd2>=0.4"]
 dev = [
     "pytest>=8",
     "pytest-qt>=4.4",
+    "pytest-cov>=5",
     "ruff>=0.6",
     "mypy>=1.10",
 ]
